@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore"; // Importamos la base de datos
+import { getAuth, GoogleAuthProvider } from "firebase/auth"; // Importamos Auth de Firebase
 
 // Configuración de Firebase (Se recomienda mover esto a variables de entorno (.env) más adelante)
 const firebaseConfig = {
@@ -26,6 +27,10 @@ isSupported().then((supported) => {
 
 // Exportamos la base de datos para poder importarla desde cualquier otro archivo
 export const db = getFirestore(app);
+
+// Inicializamos y exportamos Auth y el proveedor de Google
+export const auth = getAuth(app);
+export const googleProvider = new GoogleAuthProvider();
 
 // Exportamos también la aplicación y analytics por si se necesitan en otros archivos
 export { app, analytics };
