@@ -134,13 +134,16 @@ export default function Home() {
     return (
       <div className={`flex h-screen w-screen items-center justify-center ${bgMain} ${textMain} transition-colors duration-250 p-4`}>
         <div className={`w-full max-w-sm border ${borderMain} ${bgSecondary} ${shadowStyle} rounded-md p-8 text-center space-y-6`}>
-          <div className="space-y-2">
-            <span className="font-mono text-sm font-black tracking-widest uppercase block">
-              MOSTACCIO
-            </span>
-            <p className={`text-xs ${textSecondary} font-mono uppercase tracking-wider`}>
-              Gestión de Casos & Hilos
-            </p>
+          <div className="flex flex-col items-center gap-3">
+            <img src="/logo.webp" alt="Logo" className="w-8 h-8 object-contain dark:invert" />
+            <div className="space-y-1">
+              <span className="font-mono text-sm font-black tracking-widest uppercase block">
+                MOSTACCIO
+              </span>
+              <p className={`text-xs ${textSecondary} font-mono uppercase tracking-wider`}>
+                Gestión de Casos & Hilos
+              </p>
+            </div>
           </div>
 
           <div className={`border-t ${borderMain} pt-6 space-y-4`}>
@@ -175,7 +178,8 @@ export default function Home() {
       <aside className={`w-64 border-r ${borderMain} ${bgSecondary} flex flex-col h-full shrink-0 z-10`}>
         {/* Logo / Cabecera */}
         <div className={`p-6 border-b ${borderMain} flex items-center justify-between`}>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.webp" alt="Logo" className="w-5 h-5 object-contain dark:invert" />
             <span className="font-mono text-sm font-black tracking-widest uppercase">
               MOSTACCIO
             </span>
