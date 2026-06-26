@@ -11,6 +11,11 @@ export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"threads">("threads");
 
+  // Nickname states
+  const [nickname, setNickname] = useState("");
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [tempNickname, setTempNickname] = useState("");
+
   // Load saved theme or system preference on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -29,6 +34,19 @@ export default function Home() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Load nickname from localStorage once user is loaded
+  useEffect(() => {
+    if (user) {
+      const savedNickname = localStorage.getItem(`nickname_${user.uid}`);
+      if (savedNickname) {
+        setNickname(savedNickname);
+      } else {
+        const defaultNickname = user.displayName ? user.displayName.split(" ")[0] : "USUARIO";
+        setNickname(defaultNickname);
+      }
+    }
+  }, [user]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -61,8 +79,26 @@ export default function Home() {
     try {
       await signOut(auth);
       setIsProfileOpen(false);
+      setNickname("");
     } catch (error: any) {
       console.error("Error al cerrar sesión:", error.message);
+    }
+  };
+
+  const saveNickname = () => {
+    const trimmed = tempNickname.trim();
+    if (trimmed && user) {
+      setNickname(trimmed);
+      localStorage.setItem(`nickname_${user.uid}`, trimmed);
+    }
+    setIsEditingNickname(false);
+  };
+
+  const handleNicknameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      saveNickname();
+    } else if (e.key === "Escape") {
+      setIsEditingNickname(false);
     }
   };
 
@@ -212,6 +248,41 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4 relative">
+            {/* Saludo y Editor de Apodo en Línea */}
+            <div className="flex items-center text-xs font-mono">
+              <span className={textSecondary}>HOLA,&nbsp;</span>
+              {isEditingNickname ? (
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={tempNickname}
+                    onChange={(e) => setTempNickname(e.target.value)}
+                    onKeyDown={handleNicknameKeyDown}
+                    onBlur={saveNickname}
+                    className={`bg-transparent border-none outline-none font-bold text-xs uppercase ${textMain} caret-transparent w-28`}
+                    autoFocus
+                    maxLength={15}
+                  />
+                  {/* Blinking custom typing cursor */}
+                  <span 
+                    className="w-[1.5px] h-3 bg-current animate-blink absolute pointer-events-none"
+                    style={{ left: `${Math.min(tempNickname.length * 7.2, 105)}px` }}
+                  />
+                </div>
+              ) : (
+                <span
+                  onClick={() => {
+                    setTempNickname(nickname);
+                    setIsEditingNickname(true);
+                  }}
+                  className="font-bold cursor-pointer hover:underline uppercase decoration-dotted"
+                  title="Haz clic para cambiar tu apodo"
+                >
+                  {nickname}
+                </span>
+              )}
+            </div>
+
             {/* Foto de Perfil (Avatar / Google Photo) */}
             <button
               onClick={(e) => {
