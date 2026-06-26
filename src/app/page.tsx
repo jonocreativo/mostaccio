@@ -179,10 +179,7 @@ export default function Home() {
         {/* Logo / Cabecera */}
         <div className={`p-6 border-b ${borderMain} flex items-center justify-between`}>
           <div className="flex items-center gap-2.5">
-            <img src="/logo.webp" alt="Logo" className="w-5 h-5 object-contain dark:invert" />
-            <span className="font-mono text-sm font-black tracking-widest uppercase">
-              MOSTACCIO
-            </span>
+            <img src="/logo.webp" alt="Logo" className="w-6 h-6 object-contain dark:invert" />
           </div>
         </div>
 
