@@ -177,10 +177,8 @@ export default function Home() {
       {/* BARRA LATERAL (SIDEBAR) */}
       <aside className={`w-64 border-r ${borderMain} ${bgSecondary} flex flex-col h-full shrink-0 z-10`}>
         {/* Logo / Cabecera */}
-        <div className={`p-6 border-b ${borderMain} flex items-center justify-between`}>
-          <div className="flex items-center gap-2.5">
-            <img src="/logo.webp" alt="Logo" className="w-6 h-6 object-contain dark:invert" />
-          </div>
+        <div className={`p-6 border-b ${borderMain} flex items-center justify-center`}>
+          <img src="/logo.webp" alt="Logo" className="h-10 w-auto object-contain dark:invert" />
         </div>
 
         {/* Opciones de Navegación */}
