@@ -112,6 +112,9 @@ export default function Home() {
   const activeBg = theme === "light" ? "bg-gray-100" : "bg-zinc-900";
   const shadowStyle = theme === "light" ? "shadow-[1px_1px_0px_0px_#000000]" : "shadow-[1px_1px_0px_0px_#ffffff]";
 
+  // Character width for alignment in monospace font (text-xs is approx 7.2px per character)
+  const charWidth = 7.2;
+
   // 1. CARGANDO SESIÓN
   if (authLoading) {
     return (
@@ -249,37 +252,48 @@ export default function Home() {
 
           <div className="flex items-center gap-4 relative">
             {/* Saludo y Editor de Apodo en Línea */}
-            <div className="flex items-center text-xs font-mono">
+            <div className="flex items-center text-xs font-mono select-none">
               <span className={textSecondary}>HOLA,&nbsp;</span>
               {isEditingNickname ? (
-                <div className="relative flex items-center">
+                <div 
+                  className="relative flex items-center"
+                  style={{ width: `${Math.max(tempNickname.length, 1) * charWidth + 8}px` }}
+                >
                   <input
                     type="text"
                     value={tempNickname}
                     onChange={(e) => setTempNickname(e.target.value)}
                     onKeyDown={handleNicknameKeyDown}
                     onBlur={saveNickname}
-                    className={`bg-transparent border-none outline-none font-bold text-xs uppercase ${textMain} caret-transparent w-28`}
+                    style={{ width: `${Math.max(tempNickname.length, 1) * charWidth}px` }}
+                    className={`bg-transparent border-none outline-none font-bold text-xs uppercase ${textMain} caret-transparent font-mono p-0 m-0`}
                     autoFocus
                     maxLength={15}
                   />
                   {/* Blinking custom typing cursor */}
                   <span 
                     className="w-[1.5px] h-3 bg-current animate-blink absolute pointer-events-none"
-                    style={{ left: `${Math.min(tempNickname.length * 7.2, 105)}px` }}
+                    style={{ left: `${Math.max(tempNickname.length, 1) * charWidth}px` }}
                   />
                 </div>
               ) : (
-                <span
+                <div 
                   onClick={() => {
                     setTempNickname(nickname);
                     setIsEditingNickname(true);
                   }}
-                  className="font-bold cursor-pointer hover:underline uppercase decoration-dotted"
-                  title="Haz clic para cambiar tu apodo"
+                  className="relative flex items-center cursor-pointer hover:underline decoration-dotted"
+                  style={{ width: `${Math.max(nickname.length, 1) * charWidth + 8}px` }}
                 >
-                  {nickname}
-                </span>
+                  <span className={`font-bold text-xs uppercase ${textMain} font-mono p-0 m-0`}>
+                    {nickname}
+                  </span>
+                  {/* Permanent blinking custom cursor in read mode */}
+                  <span 
+                    className="w-[1.5px] h-3 bg-current animate-blink absolute pointer-events-none"
+                    style={{ left: `${Math.max(nickname.length, 1) * charWidth}px` }}
+                  />
+                </div>
               )}
             </div>
 
