@@ -1,0 +1,22 @@
+runConfig:
+  minInstances: 0
+  maxInstances: 4
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyB-7hdTsC9P62VC7GXIfY_ZKLrE6k-EYWE"
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "mostaccio-a30ee.firebaseapp.com"
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "mostaccio-a30ee"
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "mostaccio-a30ee.firebasestorage.app"
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "1057267223270"
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:1057267223270:web:f4fb00e6a886ec7de90927"
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: "G-RX56EQG0PM"
