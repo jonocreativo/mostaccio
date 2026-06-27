@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore"; // Importamos la base de datos
-import { getAuth, GoogleAuthProvider } from "firebase/auth"; // Importamos Auth de Firebase
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore"; // Añadimos connectFirestoreEmulator
+import { getAuth, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth"; // Añadimos connectAuthEmulator
 
 // Configuración de Firebase (Se recomienda mover esto a variables de entorno (.env) más adelante)
 const firebaseConfig = {
@@ -31,6 +31,15 @@ export const db = getFirestore(app);
 // Inicializamos y exportamos Auth y el proveedor de Google
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// --- CONEXIÓN A EMULADORES LOCALES ---
+// Verificamos si estamos corriendo en el entorno local (localhost o 127.0.0.1)
+// El typeof window evita errores si el código se ejecuta en el servidor (ej. SSR en Next.js)
+if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+    connectFirestoreEmulator(db, '127.0.0.1', 8080);
+    connectAuthEmulator(auth, "http://127.0.0.1:9099");
+    console.log("¡Conectado a los emuladores locales de Firebase!");
+}
 
 // Exportamos también la aplicación y analytics por si se necesitan en otros archivos
 export { app, analytics };
