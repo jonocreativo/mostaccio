@@ -135,7 +135,7 @@ export default function Home() {
       <div className={`flex h-screen w-screen items-center justify-center ${bgMain} ${textMain} transition-colors duration-250 p-4`}>
         <div className={`w-full max-w-sm border ${borderMain} ${bgSecondary} ${shadowStyle} rounded-md p-8 text-center space-y-6`}>
           <div className="flex flex-col items-center gap-3">
-            <img src="/logo.webp" alt="Logo" className="w-8 h-8 object-contain dark:invert" />
+            <img src="/logo.webp" alt="Logo" className="w-8 h-8 object-contain" style={theme === "dark" ? { filter: "brightness(0) invert(1)" } : undefined} />
             <div className="space-y-1">
               <span className="font-mono text-sm font-black tracking-widest uppercase block">
                 MOSTACCIO
@@ -178,7 +178,7 @@ export default function Home() {
       <aside className={`w-64 border-r ${borderMain} ${bgSecondary} flex flex-col h-full shrink-0 z-10`}>
         {/* Logo / Cabecera */}
         <div className={`p-6 border-b ${borderMain} flex items-center justify-center`}>
-          <img src="/logo.webp" alt="Logo" className="h-10 w-auto object-contain dark:invert" />
+          <img src="/logo.webp" alt="Logo" className="h-10 w-auto object-contain" style={theme === "dark" ? { filter: "brightness(0) invert(1)" } : undefined} />
         </div>
 
         {/* Opciones de Navegación */}
