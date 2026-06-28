@@ -358,9 +358,25 @@ export default function Home() {
     return d.toLocaleString("es-ES", {
       day: "2-digit",
       month: "2-digit",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  // Auxiliares para extraer nombre y correo de los campos de remitente/destinatario
+  const cleanSenderName = (senderStr?: string) => {
+    if (!senderStr) return "";
+    if (senderStr.includes("<")) {
+      return senderStr.split("<")[0].trim();
+    }
+    return senderStr;
+  };
+
+  const cleanSenderEmail = (senderStr?: string) => {
+    if (!senderStr) return "";
+    const match = senderStr.match(/<([^>]+)>/);
+    return match ? match[1] : senderStr;
   };
 
   // Clasificación de hilos
@@ -389,7 +405,6 @@ export default function Home() {
   const modalBodyBg = theme === "light" ? "bg-white" : "bg-zinc-900/20";
   const messageItemBg = theme === "light" ? "bg-gray-50/40 border" : "bg-zinc-950 border";
   const messageBodyBg = theme === "light" ? "bg-white border" : "bg-zinc-900/30 border";
-  const metaBoxBg = theme === "light" ? "bg-gray-50/40 border text-gray-800" : "bg-zinc-950 border text-zinc-300";
   const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-blue-900/20 text-blue-450 border border-blue-900/30";
   const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-purple-900/20 text-purple-450 border border-purple-900/30";
   const badgeStyleYellow = theme === "light" ? "bg-yellow-50 text-yellow-700 border border-yellow-200" : "bg-yellow-900/20 text-yellow-450 border border-yellow-900/30";
@@ -881,7 +896,7 @@ export default function Home() {
                           
                           <button
                             onClick={() => setIsLinkingOrphanId(oc.id)}
-                            className="px-2 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-80 transition-opacity border border-black dark:border-white"
+                            className={`px-2 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-80 transition-opacity border ${borderMain}`}
                           >
                             Vincular
                           </button>
@@ -917,10 +932,11 @@ export default function Home() {
                   }`}>
                     ID: {selectedCase.id}
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${borderMain} ${
+                  {/* Corregido contraste del tag de estado "activo/resuelto" para máxima legibilidad */}
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${
                     selectedCase.status === "activo" 
-                      ? "bg-green-50 text-green-700 dark:bg-green-950/35 dark:text-green-400" 
-                      : "bg-gray-50 text-gray-600 dark:bg-zinc-950/35 dark:text-zinc-400"
+                      ? (theme === "light" ? "bg-green-100 text-green-800 border-green-300" : "bg-green-950/40 text-green-300 border-green-900/50")
+                      : (theme === "light" ? "bg-gray-150 text-gray-700 border-gray-300" : "bg-zinc-900 text-zinc-400 border-zinc-800")
                   }`}>
                     {selectedCase.status}
                   </span>
@@ -940,7 +956,7 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Contenido del Modal (Ultra-minimalista sin textos ni títulos gritones, flechas roja y verde) */}
+            {/* Contenido del Modal (Ultra-minimalista sin textos ni títulos, flechas roja y verde, metadatos en una sola línea) */}
             <div className={`flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x ${borderMain} gap-6 md:gap-0 ${modalBodyBg}`}>
               
               {/* Lado Inicial (Cliente) */}
@@ -959,16 +975,12 @@ export default function Home() {
 
                 {selectedCase.inicial ? (
                   <div className="space-y-4">
-                    {/* Metadatos directos sin títulos redundantes ni gritones */}
-                    <div className={`p-4 rounded space-y-2 text-xs ${metaBoxBg}`}>
-                      <p className={`font-semibold break-all ${labelHeaderStyle}`}>{selectedCase.inicial.sender}</p>
-                      <p className="break-all text-gray-500 dark:text-zinc-400">{selectedCase.inicial.recipient}</p>
-                      <p className="text-gray-400 dark:text-zinc-500 text-[10px]">
-                        {formatDateTime(selectedCase.inicial.messages?.[0]?.date || selectedCase.createdAt)}
-                      </p>
+                    {/* Metadatos en una sola línea discreta para jerarquía clara */}
+                    <div className="text-[11px] text-gray-500 dark:text-zinc-400 border-b border-gray-100 dark:border-zinc-900/50 pb-2 truncate" title={`${selectedCase.inicial.sender} | ${selectedCase.inicial.recipient}`}>
+                      {cleanSenderName(selectedCase.inicial.sender)} | {cleanSenderEmail(selectedCase.inicial.sender)} | {formatDateTime(selectedCase.inicial.messages?.[0]?.date || selectedCase.createdAt)}
                     </div>
 
-                    {/* Historial de Mensajes sin título redundante */}
+                    {/* Historial de Mensajes */}
                     <div className="space-y-2.5">
                       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                         {selectedCase.inicial.messages?.map((msg, index) => (
@@ -1024,16 +1036,12 @@ export default function Home() {
 
                 {selectedCase.levantamiento ? (
                   <div className="space-y-4">
-                    {/* Metadatos directos sin títulos redundantes ni gritones */}
-                    <div className={`p-4 rounded space-y-2 text-xs ${metaBoxBg}`}>
-                      <p className={`font-semibold break-all ${labelHeaderStyle}`}>{selectedCase.levantamiento.recipient}</p>
-                      <p className="break-all text-gray-500 dark:text-zinc-400">{selectedCase.levantamiento.sender}</p>
-                      <p className="text-gray-400 dark:text-zinc-500 text-[10px]">
-                        {formatDateTime(selectedCase.levantamiento.messages?.[0]?.date || selectedCase.updatedAt)}
-                      </p>
+                    {/* Metadatos en una sola línea discreta para jerarquía clara (mostrando destinatario derivado) */}
+                    <div className="text-[11px] text-gray-500 dark:text-zinc-400 border-b border-gray-100 dark:border-zinc-900/50 pb-2 truncate" title={`${selectedCase.levantamiento.recipient} | ${selectedCase.levantamiento.sender}`}>
+                      {cleanSenderName(selectedCase.levantamiento.recipient)} | {cleanSenderEmail(selectedCase.levantamiento.recipient)} | {formatDateTime(selectedCase.levantamiento.messages?.[0]?.date || selectedCase.updatedAt)}
                     </div>
 
-                    {/* Historial de Mensajes sin título redundante */}
+                    {/* Historial de Mensajes */}
                     <div className="space-y-2.5">
                       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                         {selectedCase.levantamiento.messages?.map((msg, index) => (
@@ -1081,7 +1089,7 @@ export default function Home() {
                           setSelectedCase(null);
                           setIsLinkingOrphanId(orphanCases[0].id);
                         }}
-                        className="px-3 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-85 transition-opacity border border-black dark:border-white"
+                        className={`px-3 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-85 transition-opacity border ${borderMain}`}
                       >
                         Vincular
                       </button>
@@ -1116,7 +1124,7 @@ export default function Home() {
                 ) : (
                   <button
                     onClick={() => unarchiveCase(selectedCase.id)}
-                    className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase rounded hover:opacity-85 transition-opacity border border-black dark:border-white"
+                    className={`px-4 py-2 bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase rounded hover:opacity-85 transition-opacity border ${borderMain}`}
                   >
                     Reabrir Caso
                   </button>
