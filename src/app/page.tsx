@@ -405,14 +405,39 @@ export default function Home() {
   const modalBodyBg = theme === "light" ? "bg-white" : "bg-zinc-900/20";
   const messageItemBg = theme === "light" ? "bg-gray-50/40 border" : "bg-zinc-950 border";
   const messageBodyBg = theme === "light" ? "bg-white border" : "bg-zinc-900/30 border";
-  const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-blue-900/20 text-blue-450 border border-blue-900/30";
-  const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-purple-900/20 text-purple-450 border border-purple-900/30";
-  const badgeStyleYellow = theme === "light" ? "bg-yellow-50 text-yellow-700 border border-yellow-200" : "bg-yellow-900/20 text-yellow-450 border border-yellow-900/30";
+  const metaBoxBg = theme === "light" ? "bg-gray-50/40 border text-gray-800" : "bg-zinc-950 border text-zinc-300";
+  
+  const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-blue-900/20 text-blue-300 border border-blue-800/30";
+  const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-purple-900/20 text-purple-300 border border-purple-800/30";
+  const badgeStyleYellow = theme === "light" ? "bg-yellow-50 text-yellow-700 border border-yellow-250" : "bg-yellow-900/20 text-yellow-300 border border-yellow-850/30";
+  
   const labelHeaderStyle = theme === "light" ? "text-black" : "text-white";
   const gmailLinkStyle = theme === "light" ? "text-gray-500 hover:text-black underline" : "text-zinc-400 hover:text-white underline";
   const inputBg = theme === "light" ? "bg-gray-50" : "bg-zinc-900";
   const modalOverlayBg = theme === "light" ? "bg-black/15" : "bg-black/75";
   const modalContainerBg = theme === "light" ? "bg-white" : "bg-zinc-950";
+
+  // Dynamic explicit theme styles for button contrast and subheaders
+  const filterActiveStyle = theme === "light" 
+    ? "bg-black text-white border-black" 
+    : "bg-white text-black border-white";
+  const filterInactiveStyle = theme === "light" 
+    ? "bg-white text-gray-500 hover:bg-gray-50 hover:text-black" 
+    : "bg-zinc-950 text-zinc-400 hover:bg-zinc-900 hover:text-white";
+
+  const primaryButtonStyle = theme === "light"
+    ? "bg-black text-white hover:bg-zinc-800 border border-black"
+    : "bg-white text-black hover:bg-zinc-200 border border-white";
+  const secondaryButtonStyle = theme === "light"
+    ? "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+    : "border border-zinc-800 bg-zinc-950 text-zinc-300 hover:bg-zinc-900";
+  const dangerButtonStyle = theme === "light"
+    ? "bg-red-650 hover:bg-red-700 text-white border border-transparent"
+    : "bg-red-950 hover:bg-red-900 text-red-200 border border-red-900/50";
+
+  const linkButtonStyle = theme === "light"
+    ? "bg-black text-white hover:bg-zinc-800 border-black"
+    : "bg-white text-black hover:bg-zinc-200 border-white";
 
   // Monospace font character width (text-xs is approx 7.2px per character)
   const charWidth = 7.2;
@@ -455,7 +480,7 @@ export default function Home() {
 
             <button
               onClick={handleGoogleLogin}
-              className={`w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-black text-white dark:bg-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 text-xs font-bold uppercase rounded-md transition-all border ${borderMain}`}
+              className={`w-full flex items-center justify-center gap-3 px-4 py-2.5 ${primaryButtonStyle} text-xs font-bold uppercase rounded-md transition-all`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -628,7 +653,7 @@ export default function Home() {
                     alert("Configuración abierta");
                     setIsProfileOpen(false);
                   }}
-                  className="w-full flex items-center gap-2 px-3 py-2 mt-1 text-left text-xs rounded hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors"
+                  className={`w-full flex items-center gap-2 px-3 py-2 mt-1 text-left text-xs rounded ${hoverBg} transition-colors`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
@@ -639,7 +664,7 @@ export default function Home() {
                 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs rounded hover:bg-gray-100 dark:hover:bg-zinc-900 text-red-650 dark:text-red-400 transition-colors"
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs rounded ${hoverBg} text-red-650 dark:text-red-400 transition-colors`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -653,15 +678,13 @@ export default function Home() {
           </div>
         </header>
 
-        {/* SUB-HEADER / FILTROS */}
+        {/* SUB-HEADER / FILTROS (Fondo y contraste controlados de forma explícita) */}
         <div className={`border-b ${borderMain} px-8 py-3 flex flex-wrap gap-4 items-center justify-between bg-transparent shrink-0`}>
           <div className={`flex border ${borderMain} rounded overflow-hidden text-xs`}>
             <button
               onClick={() => setFilterStatus("activo")}
               className={`px-3 py-1.5 font-bold uppercase transition-all ${
-                filterStatus === "activo" 
-                  ? "bg-black text-white dark:bg-white dark:text-black" 
-                  : "bg-transparent hover:bg-gray-50 dark:hover:bg-zinc-900"
+                filterStatus === "activo" ? filterActiveStyle : filterInactiveStyle
               }`}
             >
               Activos ({activeCases.length})
@@ -669,9 +692,7 @@ export default function Home() {
             <button
               onClick={() => setFilterStatus("resuelto")}
               className={`px-3 py-1.5 font-bold uppercase transition-all border-l ${borderMain} ${
-                filterStatus === "resuelto" 
-                  ? "bg-black text-white dark:bg-white dark:text-black" 
-                  : "bg-transparent hover:bg-gray-50 dark:hover:bg-zinc-900"
+                filterStatus === "resuelto" ? filterActiveStyle : filterInactiveStyle
               }`}
             >
               Archivados ({archivedCases.length})
@@ -698,7 +719,7 @@ export default function Home() {
                   </p>
                   <button
                     onClick={generateMockThreads}
-                    className={`px-4 py-2 bg-black text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200 text-[10px] font-bold uppercase rounded border ${borderMain} transition-all`}
+                    className={`px-4 py-2 text-[10px] font-bold uppercase rounded border ${borderMain} ${primaryButtonStyle} transition-all`}
                   >
                     Generar Hilos de Prueba
                   </button>
@@ -896,7 +917,7 @@ export default function Home() {
                           
                           <button
                             onClick={() => setIsLinkingOrphanId(oc.id)}
-                            className={`px-2 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-80 transition-opacity border ${borderMain}`}
+                            className={`px-2 py-1 rounded text-[9px] font-bold uppercase hover:opacity-80 transition-opacity border ${linkButtonStyle}`}
                           >
                             Vincular
                           </button>
@@ -1089,7 +1110,7 @@ export default function Home() {
                           setSelectedCase(null);
                           setIsLinkingOrphanId(orphanCases[0].id);
                         }}
-                        className={`px-3 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-85 transition-opacity border ${borderMain}`}
+                        className={`px-3 py-1 rounded text-[9px] font-bold uppercase hover:opacity-85 transition-opacity border ${linkButtonStyle}`}
                       >
                         Vincular
                       </button>
@@ -1106,7 +1127,7 @@ export default function Home() {
                 {(selectedCase.inicial?.hasUnread || selectedCase.levantamiento?.hasUnread) && (
                   <button
                     onClick={() => markAsRead(selectedCase.id)}
-                    className={`px-4 py-2 border ${borderMain} font-bold text-xs uppercase rounded hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors`}
+                    className={`px-4 py-2 font-bold text-xs uppercase rounded transition-colors ${secondaryButtonStyle}`}
                   >
                     Marcar como leído
                   </button>
@@ -1117,14 +1138,14 @@ export default function Home() {
                 {selectedCase.status === "activo" ? (
                   <button
                     onClick={() => archiveCase(selectedCase.id)}
-                    className="px-4 py-2 bg-red-650 hover:bg-red-700 dark:bg-red-950 dark:hover:bg-red-900 text-white text-xs font-bold uppercase rounded transition-colors"
+                    className={`px-4 py-2 text-xs font-bold uppercase rounded transition-colors ${dangerButtonStyle}`}
                   >
                     Archivar Caso
                   </button>
                 ) : (
                   <button
                     onClick={() => unarchiveCase(selectedCase.id)}
-                    className={`px-4 py-2 bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase rounded hover:opacity-85 transition-opacity border ${borderMain}`}
+                    className={`px-4 py-2 text-xs font-bold uppercase rounded hover:opacity-85 transition-opacity ${primaryButtonStyle}`}
                   >
                     Reabrir Caso
                   </button>
@@ -1227,7 +1248,7 @@ export default function Home() {
                   setIsLinkingOrphanId(null);
                   setLinkSearchTerm("");
                 }}
-                className={`px-3 py-1.5 border ${borderMain} rounded text-xs font-bold uppercase ${hoverBg} transition-colors`}
+                className={`px-3 py-1.5 rounded text-xs font-bold uppercase transition-colors ${secondaryButtonStyle}`}
               >
                 Cancelar
               </button>
