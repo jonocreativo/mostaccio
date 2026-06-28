@@ -47,6 +47,10 @@ export default function Home() {
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [tempNickname, setTempNickname] = useState("");
 
+  // Case title edit states
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState("");
+
   // Firestore states
   const [cases, setCases] = useState<Case[]>([]);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
@@ -97,6 +101,16 @@ export default function Home() {
     });
     return () => unsubscribe();
   }, [user]);
+
+  // Sync selected case title when DB changes
+  useEffect(() => {
+    if (selectedCase) {
+      const current = cases.find(c => c.id === selectedCase.id);
+      if (current && current.title !== selectedCase.title) {
+        setSelectedCase(current);
+      }
+    }
+  }, [cases, selectedCase]);
 
   // Load nickname from localStorage once user is loaded
   useEffect(() => {
@@ -163,6 +177,25 @@ export default function Home() {
     } else if (e.key === "Escape") {
       setIsEditingNickname(false);
     }
+  };
+
+  // Case title save action
+  const saveCaseTitle = async () => {
+    if (!selectedCase) return;
+    const trimmed = tempTitle.trim();
+    if (trimmed && trimmed !== selectedCase.title) {
+      try {
+        const caseRef = doc(db, "cases", selectedCase.id);
+        await updateDoc(caseRef, {
+          title: trimmed,
+          updatedAt: new Date().toISOString()
+        });
+        setSelectedCase(prev => prev ? { ...prev, title: trimmed } : null);
+      } catch (err) {
+        console.error("Error al guardar título del caso:", err);
+      }
+    }
+    setIsEditingTitle(false);
   };
 
   // Acciones sobre los casos
@@ -396,23 +429,21 @@ export default function Home() {
   const activeBg = theme === "light" ? "bg-gray-100" : "bg-zinc-900";
   
   // Component specific colors (Flat 2.0 theme dynamic values con bordes suaves de 1px)
-  const cardHeaderBg = theme === "light" ? "bg-gray-50/50 border-b" : "bg-zinc-900/60 border-b";
+  const cardHeaderBg = theme === "light" ? "bg-gray-50/50" : "bg-zinc-900/60";
   const cardLeftBg = theme === "light" ? "bg-white" : "bg-zinc-950";
   const cardRightBg = theme === "light" ? "bg-gray-50/50" : "bg-zinc-900/20";
   const innerCardBg = theme === "light" ? "bg-white border" : "bg-zinc-950 border";
-  const modalHeaderBg = theme === "light" ? "bg-white border-b" : "bg-zinc-950 border-b";
-  const modalFooterBg = theme === "light" ? "bg-white border-t" : "bg-zinc-950 border-t";
+  const modalHeaderBg = theme === "light" ? "bg-white" : "bg-zinc-950";
+  const modalFooterBg = theme === "light" ? "bg-white" : "bg-zinc-950";
   const modalBodyBg = theme === "light" ? "bg-white" : "bg-zinc-900/20";
-  const messageItemBg = theme === "light" ? "bg-gray-50/40 border" : "bg-zinc-950 border";
-  const messageBodyBg = theme === "light" ? "bg-white border" : "bg-zinc-900/30 border";
-  const metaBoxBg = theme === "light" ? "bg-gray-50/40 border text-gray-800" : "bg-zinc-950 border text-zinc-300";
+  const messageItemBg = theme === "light" ? "bg-gray-50 border border-gray-200" : "bg-zinc-950 border border-zinc-850";
   
-  const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-blue-900/20 text-blue-300 border border-blue-800/30";
-  const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-purple-900/20 text-purple-300 border border-purple-800/30";
-  const badgeStyleYellow = theme === "light" ? "bg-yellow-50 text-yellow-700 border border-yellow-250" : "bg-yellow-900/20 text-yellow-300 border border-yellow-850/30";
+  const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-100" : "bg-blue-900/20 text-blue-300 border border-blue-800/30";
+  const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-100" : "bg-purple-900/20 text-purple-300 border border-purple-800/30";
+  const badgeStyleYellow = theme === "light" ? "bg-yellow-50 text-yellow-700 border border-yellow-150" : "bg-yellow-900/20 text-yellow-300 border border-yellow-850/30";
   
   const labelHeaderStyle = theme === "light" ? "text-black" : "text-white";
-  const gmailLinkStyle = theme === "light" ? "text-gray-500 hover:text-black underline" : "text-zinc-400 hover:text-white underline";
+  const gmailLinkStyle = theme === "light" ? "text-gray-400 hover:text-black underline" : "text-zinc-500 hover:text-white underline";
   const inputBg = theme === "light" ? "bg-gray-50" : "bg-zinc-900";
   const modalOverlayBg = theme === "light" ? "bg-black/15" : "bg-black/75";
   const modalContainerBg = theme === "light" ? "bg-white" : "bg-zinc-950";
@@ -503,7 +534,7 @@ export default function Home() {
       {/* BARRA LATERAL (SIDEBAR) */}
       <aside className={`w-64 border-r ${borderMain} ${bgSecondary} flex flex-col h-full shrink-0 z-10`}>
         {/* Logo / Cabecera */}
-        <div className={`p-6 border-b ${borderMain} flex items-center justify-center`}>
+        <div className="p-6 flex items-center justify-center">
           <img src="/logo.webp" alt="Logo" className="h-10 w-auto object-contain" style={theme === "dark" ? { filter: "brightness(0) invert(1)" } : undefined} />
         </div>
 
@@ -678,7 +709,7 @@ export default function Home() {
           </div>
         </header>
 
-        {/* SUB-HEADER / FILTROS (Fondo y contraste controlados de forma explícita) */}
+        {/* SUB-HEADER / FILTROS */}
         <div className={`border-b ${borderMain} px-8 py-3 flex flex-wrap gap-4 items-center justify-between bg-transparent shrink-0`}>
           <div className={`flex border ${borderMain} rounded overflow-hidden text-xs`}>
             <button
@@ -735,7 +766,7 @@ export default function Home() {
                       onClick={() => setSelectedCase(c)}
                       className={`group relative cursor-pointer border ${borderMain} ${bgSecondary} rounded-md transition-all flex flex-col overflow-hidden`}
                     >
-                      {/* Cabecera de la Tarjeta */}
+                      {/* Cabecera de la Tarjeta (Sin bordes divisorios innecesarios, más limpio y respirable) */}
                       <div className={`p-4 flex items-start justify-between gap-3 ${cardHeaderBg}`}>
                         <div className="space-y-0.5 min-w-0">
                           <span className={`text-[10px] font-bold uppercase tracking-wider ${textSecondary}`}>
@@ -782,8 +813,8 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Visualización Doble (Flujo del caso) */}
-                      <div className={`flex-1 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x ${borderMain}`}>
+                      {/* Visualización Doble sin borde divisorio (respirable, separado por espacio) */}
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
                         {/* Correo Inicial (Izquierda) */}
                         <div className={`p-4 flex flex-col justify-between space-y-3 ${cardLeftBg}`}>
                           <div className="space-y-1">
@@ -945,7 +976,7 @@ export default function Home() {
           >
             {/* Header del Modal */}
             <div className={`p-6 flex items-start justify-between gap-4 ${modalHeaderBg}`}>
-              <div className="space-y-1">
+              <div className="space-y-1.5 flex-1 pr-4">
                 <div className="flex items-center gap-2">
                   {/* Corregido contraste del ID de caso para modo claro/oscuro */}
                   <span className={`px-2 py-0.5 border ${borderMain} rounded text-[9px] font-bold uppercase ${
@@ -962,9 +993,33 @@ export default function Home() {
                     {selectedCase.status}
                   </span>
                 </div>
-                <h3 className={`font-extrabold text-base uppercase pr-6 ${labelHeaderStyle}`}>
-                  {selectedCase.title || "Caso sin asunto"}
-                </h3>
+                
+                {/* Título de caso editable con clic directo */}
+                {isEditingTitle ? (
+                  <input
+                    type="text"
+                    value={tempTitle}
+                    onChange={(e) => setTempTitle(e.target.value)}
+                    onBlur={saveCaseTitle}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveCaseTitle();
+                      if (e.key === "Escape") setIsEditingTitle(false);
+                    }}
+                    className={`bg-transparent border ${borderMain} px-2.5 py-1.5 rounded outline-none font-extrabold text-base uppercase ${textMain} w-full`}
+                    autoFocus
+                  />
+                ) : (
+                  <h3 
+                    onClick={() => {
+                      setTempTitle(selectedCase.title || "");
+                      setIsEditingTitle(true);
+                    }}
+                    className={`font-extrabold text-base uppercase ${labelHeaderStyle} cursor-pointer hover:underline decoration-dotted inline-block`}
+                    title="Haz clic para renombrar el caso"
+                  >
+                    {selectedCase.title || "Caso sin asunto"}
+                  </h3>
+                )}
               </div>
 
               {/* Botón de cerrar minimalista (Solo X) */}
@@ -977,63 +1032,46 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Contenido del Modal (Ultra-minimalista sin textos ni títulos, flechas roja y verde, metadatos en una sola línea) */}
-            <div className={`flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x ${borderMain} gap-6 md:gap-0 ${modalBodyBg}`}>
+            {/* Contenido del Modal (Ultra-minimalista sin líneas divisorias toscas y con gap amplio para respirar) */}
+            <div className={`flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-12 ${modalBodyBg}`}>
               
               {/* Lado Inicial (Cliente) */}
-              <div className="md:pr-6 space-y-4">
-                <div className={`flex items-center justify-between border-b ${borderMain} pb-2`}>
-                  {/* Icono de flecha hacia abajo en rojo */}
-                  <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 13l-7 7-7-7" />
-                  </svg>
-                  {selectedCase.inicial?.hasUnread && (
-                    <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${badgeStyleBlue}`}>
-                      Nuevo
-                    </span>
-                  )}
-                </div>
-
+              <div className="space-y-4">
                 {selectedCase.inicial ? (
                   <div className="space-y-4">
-                    {/* Metadatos en una sola línea discreta para jerarquía clara */}
-                    <div className="text-[11px] text-gray-500 dark:text-zinc-400 border-b border-gray-100 dark:border-zinc-900/50 pb-2 truncate" title={`${selectedCase.inicial.sender} | ${selectedCase.inicial.recipient}`}>
-                      {cleanSenderName(selectedCase.inicial.sender)} | {cleanSenderEmail(selectedCase.inicial.sender)} | {formatDateTime(selectedCase.inicial.messages?.[0]?.date || selectedCase.createdAt)}
+                    {/* Flecha roja y metadatos alineados en una sola línea */}
+                    <div className="flex items-center gap-2 pb-2">
+                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 13l-7 7-7-7" />
+                      </svg>
+                      <span className="text-[11px] text-gray-500 dark:text-zinc-400 truncate font-medium">
+                        {cleanSenderName(selectedCase.inicial.sender)} | {cleanSenderEmail(selectedCase.inicial.sender)}
+                      </span>
                     </div>
 
-                    {/* Historial de Mensajes */}
-                    <div className="space-y-2.5">
-                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                        {selectedCase.inicial.messages?.map((msg, index) => (
-                          <div 
-                            key={msg.messageId || index}
-                            className={`p-3 rounded text-xs space-y-2 ${messageItemBg}`}
-                          >
-                            <div className="flex items-center justify-between text-[9px] uppercase text-gray-400">
-                              <span>Mensaje #{index + 1}</span>
-                              <span>{formatDateTime(msg.date)}</span>
-                            </div>
-                            <p className={`font-semibold text-[11px] truncate ${labelHeaderStyle}`}>
+                    {/* Historial de Mensajes (Solo pastillas con hora y asunto, sin cuerpo de correo) */}
+                    <div className="space-y-3">
+                      {selectedCase.inicial.messages?.map((msg, index) => (
+                        <div key={msg.messageId || index} className="flex items-center justify-between gap-3 text-xs">
+                          {/* Pastilla con hora y asunto del correo */}
+                          <div className={`px-3 py-1.5 rounded-full ${messageItemBg} flex items-center gap-2 max-w-[80%] truncate`}>
+                            <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 shrink-0">
+                              {formatDateTime(msg.date)}
+                            </span>
+                            <span className={`truncate font-medium ${labelHeaderStyle}`} title={msg.subject}>
                               {msg.subject}
-                            </p>
-                            {msg.body && (
-                              <p className={`text-[10px] ${textSecondary} line-clamp-2 leading-relaxed p-1.5 rounded ${messageBodyBg}`}>
-                                {msg.body}
-                              </p>
-                            )}
-                            <div className="text-right">
-                              <a
-                                href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className={`inline-block text-[9px] uppercase hover:font-bold ${gmailLinkStyle}`}
-                              >
-                                Abrir en Gmail ↗
-                              </a>
-                            </div>
+                            </span>
                           </div>
-                        ))}
-                      </div>
+                          <a
+                            href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`text-[10px] uppercase hover:font-bold ${gmailLinkStyle} shrink-0`}
+                          >
+                            Gmail ↗
+                          </a>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ) : (
@@ -1042,63 +1080,46 @@ export default function Home() {
               </div>
 
               {/* Lado Levantamiento (Derivado) */}
-              <div className="md:pl-6 pt-6 md:pt-0 space-y-4">
-                <div className={`flex items-center justify-between border-b ${borderMain} pb-2`}>
-                  {/* Icono de flecha hacia arriba en verde */}
-                  <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 11l7-7 7 7" />
-                  </svg>
-                  {selectedCase.levantamiento?.hasUnread && (
-                    <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${badgeStylePurple}`}>
-                      Nuevo
-                    </span>
-                  )}
-                </div>
-
+              <div className="space-y-4">
                 {selectedCase.levantamiento ? (
                   <div className="space-y-4">
-                    {/* Metadatos en una sola línea discreta para jerarquía clara (mostrando destinatario derivado) */}
-                    <div className="text-[11px] text-gray-500 dark:text-zinc-400 border-b border-gray-100 dark:border-zinc-900/50 pb-2 truncate" title={`${selectedCase.levantamiento.recipient} | ${selectedCase.levantamiento.sender}`}>
-                      {cleanSenderName(selectedCase.levantamiento.recipient)} | {cleanSenderEmail(selectedCase.levantamiento.recipient)} | {formatDateTime(selectedCase.levantamiento.messages?.[0]?.date || selectedCase.updatedAt)}
+                    {/* Flecha verde y metadatos alineados en una sola línea */}
+                    <div className="flex items-center gap-2 pb-2">
+                      <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 11l7-7 7 7" />
+                      </svg>
+                      <span className="text-[11px] text-gray-500 dark:text-zinc-400 truncate font-medium">
+                        {cleanSenderName(selectedCase.levantamiento.recipient)} | {cleanSenderEmail(selectedCase.levantamiento.recipient)}
+                      </span>
                     </div>
 
-                    {/* Historial de Mensajes */}
-                    <div className="space-y-2.5">
-                      <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                        {selectedCase.levantamiento.messages?.map((msg, index) => (
-                          <div 
-                            key={msg.messageId || index}
-                            className={`p-3 rounded text-xs space-y-2 ${messageItemBg}`}
-                          >
-                            <div className="flex items-center justify-between text-[9px] uppercase text-gray-400">
-                              <span>Mensaje #{index + 1}</span>
-                              <span>{formatDateTime(msg.date)}</span>
-                            </div>
-                            <p className={`font-semibold text-[11px] truncate ${labelHeaderStyle}`}>
+                    {/* Historial de Mensajes (Solo pastillas con hora y asunto, sin cuerpo de correo) */}
+                    <div className="space-y-3">
+                      {selectedCase.levantamiento.messages?.map((msg, index) => (
+                        <div key={msg.messageId || index} className="flex items-center justify-between gap-3 text-xs">
+                          {/* Pastilla con hora y asunto del correo */}
+                          <div className={`px-3 py-1.5 rounded-full ${messageItemBg} flex items-center gap-2 max-w-[80%] truncate`}>
+                            <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 shrink-0">
+                              {formatDateTime(msg.date)}
+                            </span>
+                            <span className={`truncate font-medium ${labelHeaderStyle}`} title={msg.subject}>
                               {msg.subject}
-                            </p>
-                            {msg.body && (
-                              <p className={`text-[10px] ${textSecondary} line-clamp-2 leading-relaxed p-1.5 rounded ${messageBodyBg}`}>
-                                {msg.body}
-                              </p>
-                            )}
-                            <div className="text-right">
-                              <a
-                                href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className={`inline-block text-[9px] uppercase hover:font-bold ${gmailLinkStyle}`}
-                              >
-                                Abrir en Gmail ↗
-                              </a>
-                            </div>
+                            </span>
                           </div>
-                        ))}
-                      </div>
+                          <a
+                            href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`text-[10px] uppercase hover:font-bold ${gmailLinkStyle} shrink-0`}
+                          >
+                            Gmail ↗
+                          </a>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ) : (
-                  <div className={`h-48 border border-dashed ${borderMain} rounded flex flex-col items-center justify-center p-6 text-center space-y-3 bg-white/5`}>
+                  <div className="h-32 rounded flex flex-col items-center justify-center p-6 text-center space-y-3 bg-white/5">
                     <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
                     <p className={`text-[10px] ${textSecondary} max-w-xs`}>
                       No se ha registrado derivación todavía.
