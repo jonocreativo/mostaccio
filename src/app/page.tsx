@@ -370,33 +370,33 @@ export default function Home() {
 
   const displayedCases = filterStatus === "activo" ? activeCases : archivedCases;
 
-  // Grayscale variables based on theme (Bordes uniformes de 1px usando borderMain. En light es border-black)
+  // Grayscale variables based on theme (Bordes suaves y grises para un diseño elegante)
   const bgMain = theme === "light" ? "bg-white" : "bg-black";
   const bgSecondary = theme === "light" ? "bg-gray-50" : "bg-zinc-950";
   const textMain = theme === "light" ? "text-black" : "text-white";
-  const textSecondary = theme === "light" ? "text-gray-500" : "text-zinc-400";
-  const borderMain = theme === "light" ? "border-black" : "border-zinc-800";
-  const hoverBg = theme === "light" ? "hover:bg-gray-100" : "hover:bg-zinc-900";
+  const textSecondary = theme === "light" ? "text-gray-400" : "text-zinc-500";
+  const borderMain = theme === "light" ? "border-gray-200" : "border-zinc-850";
+  const hoverBg = theme === "light" ? "hover:bg-gray-50" : "hover:bg-zinc-900";
   const activeBg = theme === "light" ? "bg-gray-100" : "bg-zinc-900";
   
-  // Component specific colors (Flat 2.0 theme dynamic values con bordes unificados de 1px negros en modo claro)
-  const cardHeaderBg = theme === "light" ? "bg-gray-50 border-b border-black" : "bg-zinc-900/60 border-b border-zinc-800";
+  // Component specific colors (Flat 2.0 theme dynamic values con bordes suaves de 1px)
+  const cardHeaderBg = theme === "light" ? "bg-gray-50/50 border-b" : "bg-zinc-900/60 border-b";
   const cardLeftBg = theme === "light" ? "bg-white" : "bg-zinc-950";
   const cardRightBg = theme === "light" ? "bg-gray-50/50" : "bg-zinc-900/20";
-  const innerCardBg = theme === "light" ? "bg-white border border-black" : "bg-zinc-950 border border-zinc-800";
-  const modalHeaderBg = theme === "light" ? "bg-gray-50 border-b border-black" : "bg-zinc-950 border-b border-zinc-800";
-  const modalFooterBg = theme === "light" ? "bg-gray-50 border-t border-black" : "bg-zinc-950 border-t border-zinc-800";
+  const innerCardBg = theme === "light" ? "bg-white border" : "bg-zinc-950 border";
+  const modalHeaderBg = theme === "light" ? "bg-white border-b" : "bg-zinc-950 border-b";
+  const modalFooterBg = theme === "light" ? "bg-white border-t" : "bg-zinc-950 border-t";
   const modalBodyBg = theme === "light" ? "bg-white" : "bg-zinc-900/20";
-  const messageItemBg = theme === "light" ? "bg-gray-50/60 border border-black" : "bg-zinc-950 border border-zinc-800";
-  const messageBodyBg = theme === "light" ? "bg-white border border-black" : "bg-zinc-900/30 border border-zinc-800";
-  const metaBoxBg = theme === "light" ? "bg-gray-50/80 border border-black text-gray-800" : "bg-zinc-950 border border-zinc-800 text-zinc-300";
-  const badgeStyleBlue = theme === "light" ? "bg-blue-100 text-blue-800 border border-black" : "bg-blue-900/30 text-blue-400 border border-zinc-800";
-  const badgeStylePurple = theme === "light" ? "bg-purple-100 text-purple-800 border border-black" : "bg-purple-900/30 text-purple-400 border border-zinc-800";
-  const badgeStyleYellow = theme === "light" ? "bg-yellow-100 text-yellow-800 border border-black" : "bg-yellow-900/30 text-yellow-400 border border-zinc-800";
+  const messageItemBg = theme === "light" ? "bg-gray-50/40 border" : "bg-zinc-950 border";
+  const messageBodyBg = theme === "light" ? "bg-white border" : "bg-zinc-900/30 border";
+  const metaBoxBg = theme === "light" ? "bg-gray-50/40 border text-gray-800" : "bg-zinc-950 border text-zinc-300";
+  const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-blue-900/20 text-blue-450 border border-blue-900/30";
+  const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-purple-900/20 text-purple-450 border border-purple-900/30";
+  const badgeStyleYellow = theme === "light" ? "bg-yellow-50 text-yellow-700 border border-yellow-200" : "bg-yellow-900/20 text-yellow-450 border border-yellow-900/30";
   const labelHeaderStyle = theme === "light" ? "text-black" : "text-white";
-  const gmailLinkStyle = theme === "light" ? "text-gray-700 hover:text-black underline" : "text-zinc-300 hover:text-white underline";
+  const gmailLinkStyle = theme === "light" ? "text-gray-500 hover:text-black underline" : "text-zinc-400 hover:text-white underline";
   const inputBg = theme === "light" ? "bg-gray-50" : "bg-zinc-900";
-  const modalOverlayBg = theme === "light" ? "bg-black/25" : "bg-black/75";
+  const modalOverlayBg = theme === "light" ? "bg-black/15" : "bg-black/75";
   const modalContainerBg = theme === "light" ? "bg-white" : "bg-zinc-950";
 
   // Monospace font character width (text-xs is approx 7.2px per character)
@@ -440,7 +440,7 @@ export default function Home() {
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-black text-white dark:bg-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 text-xs font-bold uppercase rounded-md transition-all shadow-sm border border-black dark:border-white"
+              className={`w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-black text-white dark:bg-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 text-xs font-bold uppercase rounded-md transition-all border ${borderMain}`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -533,7 +533,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-4 relative">
-            {/* Saludo y Editor de Apodo (Lógica original con font-mono, charWidth y cursor animado) */}
+            {/* Saludo y Editor de Apodo */}
             <div className="flex items-center text-xs select-none">
               <span className={textSecondary}>HOLA,&nbsp;</span>
               {isEditingNickname ? (
@@ -617,7 +617,7 @@ export default function Home() {
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1-2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1-2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
                   <span>Configuración</span>
                 </button>
@@ -638,7 +638,7 @@ export default function Home() {
           </div>
         </header>
 
-        {/* SUB-HEADER / FILTROS FLAT 2.0 */}
+        {/* SUB-HEADER / FILTROS */}
         <div className={`border-b ${borderMain} px-8 py-3 flex flex-wrap gap-4 items-center justify-between bg-transparent shrink-0`}>
           <div className={`flex border ${borderMain} rounded overflow-hidden text-xs`}>
             <button
@@ -646,7 +646,7 @@ export default function Home() {
               className={`px-3 py-1.5 font-bold uppercase transition-all ${
                 filterStatus === "activo" 
                   ? "bg-black text-white dark:bg-white dark:text-black" 
-                  : "bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-900"
+                  : "bg-transparent hover:bg-gray-50 dark:hover:bg-zinc-900"
               }`}
             >
               Activos ({activeCases.length})
@@ -656,7 +656,7 @@ export default function Home() {
               className={`px-3 py-1.5 font-bold uppercase transition-all border-l ${borderMain} ${
                 filterStatus === "resuelto" 
                   ? "bg-black text-white dark:bg-white dark:text-black" 
-                  : "bg-transparent hover:bg-gray-100 dark:hover:bg-zinc-900"
+                  : "bg-transparent hover:bg-gray-50 dark:hover:bg-zinc-900"
               }`}
             >
               Archivados ({archivedCases.length})
@@ -724,7 +724,6 @@ export default function Home() {
                             <button
                               onClick={(e) => archiveCase(c.id, e)}
                               className={`p-1 rounded border ${borderMain} bg-transparent ${hoverBg} transition-colors`}
-                              title="Archivar caso"
                             >
                               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <polyline points="21 8 21 21 3 21 3 8" />
@@ -736,7 +735,6 @@ export default function Home() {
                             <button
                               onClick={(e) => unarchiveCase(c.id, e)}
                               className={`p-1 rounded border ${borderMain} bg-transparent ${hoverBg} transition-colors`}
-                              title="Reabrir caso"
                             >
                               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -837,7 +835,6 @@ export default function Home() {
               <div className={`border ${borderMain} ${bgSecondary} rounded-md p-5 space-y-4`}>
                 <div className={`flex items-center justify-between pb-2 border-b ${borderMain}`}>
                   <h3 className="font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
-                    <span>⚠️</span>
                     <span>Huérfanos ({orphanCases.length})</span>
                   </h3>
                   <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${badgeStyleYellow}`}>
@@ -884,7 +881,7 @@ export default function Home() {
                           
                           <button
                             onClick={() => setIsLinkingOrphanId(oc.id)}
-                            className="px-2 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-80 transition-opacity"
+                            className="px-2 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-80 transition-opacity border border-black dark:border-white"
                           >
                             Vincular
                           </button>
@@ -914,13 +911,16 @@ export default function Home() {
             <div className={`p-6 flex items-start justify-between gap-4 ${modalHeaderBg}`}>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <span className={`px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-900 border ${borderMain} rounded text-[9px] font-bold uppercase`}>
+                  {/* Corregido contraste del ID de caso para modo claro/oscuro */}
+                  <span className={`px-2 py-0.5 border ${borderMain} rounded text-[9px] font-bold uppercase ${
+                    theme === "light" ? "bg-gray-100 text-gray-700" : "bg-zinc-900 text-zinc-300"
+                  }`}>
                     ID: {selectedCase.id}
                   </span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase border ${borderMain} ${
+                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${borderMain} ${
                     selectedCase.status === "activo" 
-                      ? "bg-green-50 text-green-800 dark:bg-green-950/20 dark:text-green-400" 
-                      : "bg-gray-50 text-gray-800 dark:bg-zinc-950/20 dark:text-zinc-400"
+                      ? "bg-green-50 text-green-700 dark:bg-green-950/35 dark:text-green-400" 
+                      : "bg-gray-50 text-gray-600 dark:bg-zinc-950/35 dark:text-zinc-400"
                   }`}>
                     {selectedCase.status}
                   </span>
@@ -930,23 +930,26 @@ export default function Home() {
                 </h3>
               </div>
 
+              {/* Botón de cerrar minimalista (Solo X) */}
               <button 
                 onClick={() => setSelectedCase(null)}
-                className={`p-1.5 rounded border ${borderMain} ${hoverBg} transition-colors font-bold text-xs uppercase shrink-0`}
+                className={`w-8 h-8 flex items-center justify-center rounded border ${borderMain} ${hoverBg} transition-colors font-bold text-sm shrink-0`}
+                title="Cerrar"
               >
-                Cerrar
+                X
               </button>
             </div>
 
-            {/* Contenido del Modal */}
+            {/* Contenido del Modal (Ultra-minimalista sin textos ni títulos gritones, flechas roja y verde) */}
             <div className={`flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x ${borderMain} gap-6 md:gap-0 ${modalBodyBg}`}>
               
               {/* Lado Inicial (Cliente) */}
               <div className="md:pr-6 space-y-4">
                 <div className={`flex items-center justify-between border-b ${borderMain} pb-2`}>
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                    📥 Flujo Inicial (Cliente)
-                  </h4>
+                  {/* Icono de flecha hacia abajo en rojo */}
+                  <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 13l-7 7-7-7" />
+                  </svg>
                   {selectedCase.inicial?.hasUnread && (
                     <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${badgeStyleBlue}`}>
                       Nuevo
@@ -956,27 +959,17 @@ export default function Home() {
 
                 {selectedCase.inicial ? (
                   <div className="space-y-4">
-                    {/* Metadatos */}
+                    {/* Metadatos directos sin títulos redundantes ni gritones */}
                     <div className={`p-4 rounded space-y-2 text-xs ${metaBoxBg}`}>
-                      <div>
-                        <span className="text-[10px] uppercase block">Remitente</span>
-                        <p className={`font-medium break-all ${labelHeaderStyle}`}>{selectedCase.inicial.sender}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase block">Destinatario</span>
-                        <p className="break-all">{selectedCase.inicial.recipient}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase block">Fecha de Creación</span>
-                        <p>{formatDateTime(selectedCase.inicial.messages?.[0]?.date || selectedCase.createdAt)}</p>
-                      </div>
+                      <p className={`font-semibold break-all ${labelHeaderStyle}`}>{selectedCase.inicial.sender}</p>
+                      <p className="break-all text-gray-500 dark:text-zinc-400">{selectedCase.inicial.recipient}</p>
+                      <p className="text-gray-400 dark:text-zinc-500 text-[10px]">
+                        {formatDateTime(selectedCase.inicial.messages?.[0]?.date || selectedCase.createdAt)}
+                      </p>
                     </div>
 
-                    {/* Historial de Mensajes */}
+                    {/* Historial de Mensajes sin título redundante */}
                     <div className="space-y-2.5">
-                      <span className="text-[10px] uppercase font-bold tracking-wider block">
-                        Mensajes del Hilo ({selectedCase.inicial.messages?.length || 0})
-                      </span>
                       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                         {selectedCase.inicial.messages?.map((msg, index) => (
                           <div 
@@ -1011,16 +1004,17 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  <p className={`text-xs ${textSecondary} italic`}>No hay información del flujo inicial.</p>
+                  <p className={`text-xs ${textSecondary} italic`}>No hay información.</p>
                 )}
               </div>
 
               {/* Lado Levantamiento (Derivado) */}
               <div className="md:pl-6 pt-6 md:pt-0 space-y-4">
                 <div className={`flex items-center justify-between border-b ${borderMain} pb-2`}>
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                    📤 Flujo Derivado (Legal/Mandante)
-                  </h4>
+                  {/* Icono de flecha hacia arriba en verde */}
+                  <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 11l7-7 7 7" />
+                  </svg>
                   {selectedCase.levantamiento?.hasUnread && (
                     <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${badgeStylePurple}`}>
                       Nuevo
@@ -1030,27 +1024,17 @@ export default function Home() {
 
                 {selectedCase.levantamiento ? (
                   <div className="space-y-4">
-                    {/* Metadatos */}
+                    {/* Metadatos directos sin títulos redundantes ni gritones */}
                     <div className={`p-4 rounded space-y-2 text-xs ${metaBoxBg}`}>
-                      <div>
-                        <span className="text-[10px] uppercase block">Destinatario derivado</span>
-                        <p className={`font-medium break-all ${labelHeaderStyle}`}>{selectedCase.levantamiento.recipient}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase block">Enviado por</span>
-                        <p className="break-all">{selectedCase.levantamiento.sender}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase block">Fecha de Derivación</span>
-                        <p>{formatDateTime(selectedCase.levantamiento.messages?.[0]?.date || selectedCase.updatedAt)}</p>
-                      </div>
+                      <p className={`font-semibold break-all ${labelHeaderStyle}`}>{selectedCase.levantamiento.recipient}</p>
+                      <p className="break-all text-gray-500 dark:text-zinc-400">{selectedCase.levantamiento.sender}</p>
+                      <p className="text-gray-400 dark:text-zinc-500 text-[10px]">
+                        {formatDateTime(selectedCase.levantamiento.messages?.[0]?.date || selectedCase.updatedAt)}
+                      </p>
                     </div>
 
-                    {/* Historial de Mensajes */}
+                    {/* Historial de Mensajes sin título redundante */}
                     <div className="space-y-2.5">
-                      <span className="text-[10px] uppercase font-bold tracking-wider block">
-                        Mensajes del Hilo ({selectedCase.levantamiento.messages?.length || 0})
-                      </span>
                       <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                         {selectedCase.levantamiento.messages?.map((msg, index) => (
                           <div 
@@ -1087,9 +1071,8 @@ export default function Home() {
                 ) : (
                   <div className={`h-48 border border-dashed ${borderMain} rounded flex flex-col items-center justify-center p-6 text-center space-y-3 bg-white/5`}>
                     <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
-                    <h5 className="font-bold text-xs uppercase tracking-wider text-black dark:text-white">Derivación Pendiente</h5>
                     <p className={`text-[10px] ${textSecondary} max-w-xs`}>
-                      No se ha registrado reenvío o respuesta vinculada para este caso todavía.
+                      No se ha registrado derivación todavía.
                     </p>
                     
                     {orphanCases.length > 0 && (
@@ -1098,9 +1081,9 @@ export default function Home() {
                           setSelectedCase(null);
                           setIsLinkingOrphanId(orphanCases[0].id);
                         }}
-                        className="px-3 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-85 transition-opacity"
+                        className="px-3 py-1 bg-black text-white dark:bg-white dark:text-black rounded text-[9px] font-bold uppercase hover:opacity-85 transition-opacity border border-black dark:border-white"
                       >
-                        Vincular manualmente un huérfano
+                        Vincular
                       </button>
                     )}
                   </div>
@@ -1126,14 +1109,14 @@ export default function Home() {
                 {selectedCase.status === "activo" ? (
                   <button
                     onClick={() => archiveCase(selectedCase.id)}
-                    className="px-4 py-2 bg-red-650 hover:bg-red-700 dark:bg-red-950 dark:hover:bg-red-900 border border-transparent text-white text-xs font-bold uppercase rounded transition-colors"
+                    className="px-4 py-2 bg-red-650 hover:bg-red-700 dark:bg-red-950 dark:hover:bg-red-900 text-white text-xs font-bold uppercase rounded transition-colors"
                   >
                     Archivar Caso
                   </button>
                 ) : (
                   <button
                     onClick={() => unarchiveCase(selectedCase.id)}
-                    className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase rounded hover:opacity-85 transition-opacity"
+                    className="px-4 py-2 bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase rounded hover:opacity-85 transition-opacity border border-black dark:border-white"
                   >
                     Reabrir Caso
                   </button>
