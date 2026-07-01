@@ -419,56 +419,56 @@ export default function Home() {
 
   const displayedCases = filterStatus === "activo" ? activeCases : archivedCases;
 
-  // Grayscale variables based on theme (Bordes suaves y grises para un diseño elegante)
-  const bgMain = theme === "light" ? "bg-white" : "bg-black";
-  const bgSecondary = theme === "light" ? "bg-gray-50" : "bg-zinc-950";
-  const textMain = theme === "light" ? "text-black" : "text-white";
-  const textSecondary = theme === "light" ? "text-gray-400" : "text-zinc-500";
-  const borderMain = theme === "light" ? "border-gray-200" : "border-zinc-850";
-  const hoverBg = theme === "light" ? "hover:bg-gray-50" : "hover:bg-zinc-900";
-  const activeBg = theme === "light" ? "bg-gray-100" : "bg-zinc-900";
+  // Grayscale variables based on theme (Bordes suaves y grises para un diseño flat y minimalista de alto contraste)
+  const bgMain = theme === "light" ? "bg-[#F8F9FA]" : "bg-[#0B0B0C]";
+  const bgSecondary = theme === "light" ? "bg-white" : "bg-[#161618]";
+  const textMain = theme === "light" ? "text-zinc-900" : "text-zinc-50";
+  const textSecondary = theme === "light" ? "text-zinc-500" : "text-zinc-400";
+  const borderMain = theme === "light" ? "border-zinc-200/40" : "border-zinc-800/45";
+  const hoverBg = theme === "light" ? "hover:bg-zinc-100/50" : "hover:bg-zinc-800/40";
+  const activeBg = theme === "light" ? "bg-zinc-100" : "bg-zinc-800";
   
-  // Component specific colors (Flat 2.0 theme dynamic values con bordes suaves de 1px)
-  const cardHeaderBg = theme === "light" ? "bg-gray-50/50" : "bg-zinc-900/60";
-  const cardLeftBg = theme === "light" ? "bg-white" : "bg-zinc-950";
-  const cardRightBg = theme === "light" ? "bg-gray-50/50" : "bg-zinc-900/20";
-  const innerCardBg = theme === "light" ? "bg-white border" : "bg-zinc-950 border";
-  const modalHeaderBg = theme === "light" ? "bg-white" : "bg-zinc-950";
-  const modalFooterBg = theme === "light" ? "bg-white" : "bg-zinc-950";
-  const modalBodyBg = theme === "light" ? "bg-white" : "bg-zinc-900/20";
-  const messageItemBg = theme === "light" ? "bg-gray-50 border border-gray-200" : "bg-zinc-950 border border-zinc-850";
+  // Component specific colors (Modern SaaS/macOS dynamic values)
+  const cardHeaderBg = theme === "light" ? "bg-zinc-50/30" : "bg-zinc-900/30";
+  const cardLeftBg = theme === "light" ? "bg-white" : "bg-[#161618]";
+  const cardRightBg = theme === "light" ? "bg-zinc-50/20" : "bg-zinc-900/20";
+  const innerCardBg = theme === "light" ? "bg-white border border-zinc-200/40" : "bg-[#161618] border border-zinc-800/45";
+  const modalHeaderBg = theme === "light" ? "bg-white" : "bg-[#161618]";
+  const modalFooterBg = theme === "light" ? "bg-white" : "bg-[#161618]";
+  const modalBodyBg = theme === "light" ? "bg-zinc-50/30" : "bg-[#0B0B0C]/30";
+  const messageItemBg = theme === "light" ? "bg-zinc-50 border border-zinc-200/40" : "bg-zinc-900 border border-zinc-800/50";
   
-  const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-100" : "bg-blue-900/20 text-blue-300 border border-blue-800/30";
-  const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-100" : "bg-purple-900/20 text-purple-300 border border-purple-800/30";
-  const badgeStyleYellow = theme === "light" ? "bg-yellow-50 text-yellow-700 border border-yellow-150" : "bg-yellow-900/20 text-yellow-300 border border-yellow-850/30";
+  const badgeStyleBlue = theme === "light" ? "bg-blue-50 text-blue-700 border border-blue-200" : "bg-blue-950/30 text-blue-300 border border-blue-900/30";
+  const badgeStylePurple = theme === "light" ? "bg-purple-50 text-purple-700 border border-purple-200" : "bg-purple-950/30 text-purple-300 border border-purple-900/30";
+  const badgeStyleYellow = theme === "light" ? "bg-amber-50 text-amber-700 border border-amber-200" : "bg-amber-950/30 text-amber-300 border border-amber-900/30";
   
-  const labelHeaderStyle = theme === "light" ? "text-black" : "text-white";
-  const gmailLinkStyle = theme === "light" ? "text-gray-400 hover:text-black underline" : "text-zinc-500 hover:text-white underline";
-  const inputBg = theme === "light" ? "bg-gray-50" : "bg-zinc-900";
-  const modalOverlayBg = theme === "light" ? "bg-black/15" : "bg-black/75";
-  const modalContainerBg = theme === "light" ? "bg-white" : "bg-zinc-950";
+  const labelHeaderStyle = theme === "light" ? "text-zinc-900" : "text-zinc-50";
+  const gmailLinkStyle = theme === "light" ? "text-zinc-400 hover:text-zinc-800 transition-colors" : "text-zinc-500 hover:text-zinc-100 transition-colors";
+  const inputBg = theme === "light" ? "bg-zinc-100/70" : "bg-zinc-800/80";
+  const modalOverlayBg = theme === "light" ? "bg-zinc-950/20 backdrop-blur-lg" : "bg-zinc-950/80 backdrop-blur-lg";
+  const modalContainerBg = theme === "light" ? "bg-white" : "bg-[#161618]";
 
-  // Dynamic explicit theme styles for button contrast and subheaders
+  // Dynamic explicit theme styles for button contrast and subheaders (Segmented Controls)
   const filterActiveStyle = theme === "light" 
-    ? "bg-black text-white border-black" 
-    : "bg-white text-black border-white";
+    ? "bg-white text-zinc-900 shadow-xs font-semibold" 
+    : "bg-zinc-700 text-zinc-50 shadow-xs font-semibold";
   const filterInactiveStyle = theme === "light" 
-    ? "bg-white text-gray-500 hover:bg-gray-50 hover:text-black" 
-    : "bg-zinc-950 text-zinc-400 hover:bg-zinc-900 hover:text-white";
+    ? "text-zinc-500 hover:text-zinc-900" 
+    : "text-zinc-400 hover:text-zinc-100";
 
   const primaryButtonStyle = theme === "light"
-    ? "bg-black text-white hover:bg-zinc-800 border border-black"
-    : "bg-white text-black hover:bg-zinc-200 border border-white";
+    ? "bg-zinc-900 hover:bg-zinc-800 text-white shadow-xs transition-all duration-200 active:scale-[0.98] font-semibold"
+    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-900 shadow-xs transition-all duration-200 active:scale-[0.98] font-semibold";
   const secondaryButtonStyle = theme === "light"
-    ? "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-    : "border border-zinc-800 bg-zinc-950 text-zinc-300 hover:bg-zinc-900";
+    ? "border border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-700 shadow-xs transition-all duration-200 active:scale-[0.98] font-semibold"
+    : "border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 shadow-xs transition-all duration-200 active:scale-[0.98] font-semibold";
   const dangerButtonStyle = theme === "light"
-    ? "bg-red-650 hover:bg-red-700 text-white border border-transparent"
-    : "bg-red-950 hover:bg-red-900 text-red-200 border border-red-900/50";
+    ? "bg-red-50 hover:bg-red-100 text-red-650 border border-red-200/60 shadow-xs transition-all duration-200 active:scale-[0.98] font-semibold"
+    : "bg-red-950/20 hover:bg-red-950/40 text-red-300 border border-red-900/30 shadow-xs transition-all duration-200 active:scale-[0.98] font-semibold";
 
   const linkButtonStyle = theme === "light"
-    ? "bg-black text-white hover:bg-zinc-800 border-black"
-    : "bg-white text-black hover:bg-zinc-200 border-white";
+    ? "bg-zinc-800 hover:bg-zinc-700 text-white transition-all duration-200 active:scale-[0.98]"
+    : "bg-zinc-100 hover:bg-zinc-200 text-zinc-900 transition-all duration-200 active:scale-[0.98]";
 
   // Monospace font character width (text-xs is approx 7.2px per character)
   const charWidth = 7.2;
@@ -490,28 +490,32 @@ export default function Home() {
   // 2. PANTALLA DE INICIO DE SESIÓN
   if (!user) {
     return (
-      <div className={`flex h-screen w-screen items-center justify-center ${bgMain} ${textMain} transition-colors duration-250 p-4`}>
-        <div className={`w-full max-w-sm border ${borderMain} ${bgSecondary} rounded-md p-8 text-center space-y-6`}>
+      <div className={`flex h-screen w-screen items-center justify-center ${bgMain} ${textMain} relative overflow-hidden transition-colors duration-300 p-4`}>
+        {/* Gradientes decorativos de fondo al estilo SaaS Moderno */}
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[60%] rounded-full bg-red-500/5 blur-[100px] pointer-events-none dark:bg-red-950/10" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[60%] rounded-full bg-green-500/5 blur-[100px] pointer-events-none dark:bg-green-950/10" />
+        
+        <div className={`relative z-10 w-full max-w-sm border border-zinc-200/20 dark:border-zinc-800/15 ${bgSecondary} rounded-3xl p-8 text-center space-y-6 shadow-xl shadow-zinc-200/20 dark:shadow-black/60`}>
           <div className="flex flex-col items-center gap-3">
-            <img src="/logo.webp" alt="Logo" className="w-8 h-8 object-contain" style={theme === "dark" ? { filter: "brightness(0) invert(1)" } : undefined} />
+            <img src="/logo.webp" alt="Logo" className="w-10 h-10 object-contain" style={theme === "dark" ? { filter: "brightness(0) invert(1)" } : undefined} />
             <div className="space-y-1">
-              <span className="text-sm font-black tracking-widest uppercase block">
+              <span className="text-base font-semibold tracking-widest uppercase block">
                 MOSTACCIO
               </span>
-              <p className={`text-[10px] ${textSecondary} uppercase tracking-wider`}>
+              <p className={`text-[9px] ${textSecondary} uppercase tracking-widest font-semibold`}>
                 Gestión de Casos & Hilos
               </p>
             </div>
           </div>
 
-          <div className={`border-t ${borderMain} pt-6 space-y-4`}>
-            <p className="text-xs">
+          <div className="pt-2 space-y-4">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Ingresa con tu cuenta de Google para comenzar a gestionar tus hilos de conversación.
             </p>
 
             <button
               onClick={handleGoogleLogin}
-              className={`w-full flex items-center justify-center gap-3 px-4 py-2.5 ${primaryButtonStyle} text-xs font-bold uppercase rounded-md transition-all`}
+              className={`w-full flex items-center justify-center gap-3 px-4 py-2.5 ${primaryButtonStyle} text-xs font-bold uppercase rounded-lg transition-all`}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -529,23 +533,25 @@ export default function Home() {
 
   // 3. PANTALLA PRINCIPAL (DASHBOARD)
   return (
-    <div className={`flex h-screen w-screen overflow-hidden ${bgMain} ${textMain} font-sans text-sm transition-colors duration-250`}>
+    <div className={`flex h-screen w-screen overflow-hidden ${bgMain} ${textMain} font-sans text-sm transition-colors duration-300 p-3.5`}>
       
       {/* BARRA LATERAL (SIDEBAR) */}
-      <aside className={`w-64 border-r ${borderMain} ${bgSecondary} flex flex-col h-full shrink-0 z-10`}>
-        {/* Logo / Cabecera */}
-        <div className="p-6 flex items-center justify-center">
-          <img src="/logo.webp" alt="Logo" className="h-10 w-auto object-contain" style={theme === "dark" ? { filter: "brightness(0) invert(1)" } : undefined} />
+      <aside className="w-56 flex flex-col h-full shrink-0 z-10 p-2 space-y-6">
+        {/* Branding minimalista */}
+        <div className="px-4 pt-4 flex items-center justify-start">
+          <span className="text-[11px] font-bold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase select-none">
+            Mostaccio
+          </span>
         </div>
 
         {/* Opciones de Navegación */}
-        <nav className="flex-1 p-4 space-y-1.5">
+        <nav className="flex-1 px-2 space-y-1">
           <button
             onClick={() => setActiveTab("threads")}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md font-medium text-left transition-all ${
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-medium text-xs text-left transition-all duration-200 ${
               activeTab === "threads" 
-                ? `${activeBg} font-bold` 
-                : `${textSecondary} ${hoverBg}`
+                ? "bg-white dark:bg-[#161618] text-zinc-900 dark:text-zinc-50 shadow-xs font-semibold" 
+                : `${textSecondary} hover:bg-zinc-200/40 dark:hover:bg-zinc-800/30`
             }`}
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -558,23 +564,23 @@ export default function Home() {
         </nav>
 
         {/* Interruptor de Tema */}
-        <div className={`p-4 border-t ${borderMain} flex items-center justify-between`}>
-          <span className={`text-[10px] uppercase ${textSecondary}`}>TEMA</span>
+        <div className="px-4 py-2 flex items-center justify-between">
+          <span className={`text-[9px] uppercase font-bold tracking-wider ${textSecondary}`}>TEMA</span>
           <button
             onClick={toggleTheme}
-            className={`flex items-center gap-2 p-1.5 rounded-md border ${borderMain} ${bgMain} ${hoverBg} transition-all`}
+            className={`flex items-center gap-2 p-1.5 rounded-xl border ${borderMain} bg-white dark:bg-[#161618] ${hoverBg} transition-all duration-200`}
             title="Cambiar tema"
           >
             {theme === "light" ? (
               <>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
-                <span className="text-[10px] font-bold uppercase pr-1">Oscuro</span>
+                <span className="text-[9px] font-bold uppercase pr-1 text-zinc-600">Oscuro</span>
               </>
             ) : (
               <>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="5" />
                   <line x1="12" y1="1" x2="12" y2="3" />
                   <line x1="12" y1="21" x2="12" y2="23" />
@@ -585,20 +591,20 @@ export default function Home() {
                   <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
                   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                 </svg>
-                <span className="text-[10px] font-bold uppercase pr-1">Claro</span>
+                <span className="text-[9px] font-bold uppercase pr-1 text-zinc-300">Claro</span>
               </>
             )}
           </button>
         </div>
       </aside>
 
-      {/* CONTENEDOR PRINCIPAL */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden">
+      {/* CONTENEDOR PRINCIPAL FLOTANTE */}
+      <div className={`flex-1 flex flex-col h-full overflow-hidden ${bgSecondary} rounded-2xl border ${borderMain} shadow-xs transition-all duration-300`}>
         
         {/* CABECERA (HEADER) */}
-        <header className={`h-16 border-b ${borderMain} px-6 flex justify-between items-center z-10 shrink-0`}>
+        <header className="h-16 px-8 flex justify-between items-center shrink-0">
           <div>
-            <h1 className="font-bold text-sm tracking-tight uppercase">
+            <h1 className="font-semibold text-sm tracking-wide text-zinc-800 dark:text-zinc-100">
               {activeTab === "threads" ? "Hilos de Conversación" : ""}
             </h1>
           </div>
@@ -656,13 +662,13 @@ export default function Home() {
                 e.stopPropagation();
                 setIsProfileOpen(!isProfileOpen);
               }}
-              className={`w-8 h-8 rounded-full border ${borderMain} flex items-center justify-center overflow-hidden hover:scale-105 transition-all`}
+              className={`w-8 h-8 rounded-full border ${borderMain} flex items-center justify-center overflow-hidden hover:scale-105 transition-all duration-200`}
               aria-label="Perfil de usuario"
             >
               {user.photoURL ? (
                 <img src={user.photoURL} alt={user.displayName || "User"} className="w-full h-full object-cover" />
               ) : (
-                <svg className={`w-full h-full ${theme === "light" ? "bg-gray-150 text-black" : "bg-zinc-800 text-white"}`} viewBox="0 0 24 24" fill="currentColor">
+                <svg className={`w-full h-full ${theme === "light" ? "bg-zinc-100 text-zinc-900" : "bg-zinc-800 text-zinc-100"}`} viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                 </svg>
               )}
@@ -672,10 +678,10 @@ export default function Home() {
             {isProfileOpen && (
               <div
                 onClick={(e) => e.stopPropagation()}
-                className={`absolute right-0 top-10 w-52 border ${borderMain} ${bgMain} rounded-md p-1 z-50`}
+                className={`absolute right-0 top-11 w-52 border ${borderMain} ${bgSecondary} rounded-2xl p-1.5 z-50 shadow-xl shadow-zinc-200/30 dark:shadow-black/70`}
               >
                 <div className={`px-3 py-2 border-b ${borderMain} text-[10px] space-y-0.5`}>
-                  <p className="font-bold truncate">{user.displayName || "Usuario Mostaccio"}</p>
+                  <p className="font-bold text-zinc-850 dark:text-zinc-100 truncate">{user.displayName || "Usuario Mostaccio"}</p>
                   <p className={`truncate text-[9px] ${textSecondary}`}>{user.email}</p>
                 </div>
 
@@ -684,7 +690,7 @@ export default function Home() {
                     alert("Configuración abierta");
                     setIsProfileOpen(false);
                   }}
-                  className={`w-full flex items-center gap-2 px-3 py-2 mt-1 text-left text-xs rounded ${hoverBg} transition-colors`}
+                  className={`w-full flex items-center gap-2 px-3 py-2 mt-1.5 text-left text-xs rounded-xl ${hoverBg} transition-colors duration-150`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="3" />
@@ -695,7 +701,7 @@ export default function Home() {
                 
                 <button
                   onClick={handleLogout}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs rounded ${hoverBg} text-red-650 dark:text-red-400 transition-colors`}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-left text-xs rounded-xl ${hoverBg} text-red-650 dark:text-red-400 transition-colors duration-150`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -710,11 +716,11 @@ export default function Home() {
         </header>
 
         {/* SUB-HEADER / FILTROS */}
-        <div className={`border-b ${borderMain} px-8 py-3 flex flex-wrap gap-4 items-center justify-between bg-transparent shrink-0`}>
-          <div className={`flex border ${borderMain} rounded overflow-hidden text-xs`}>
+        <div className="px-8 py-3 flex flex-wrap gap-4 items-center justify-between shrink-0">
+          <div className="flex bg-zinc-200/60 dark:bg-zinc-800/50 p-0.5 rounded-lg text-xs select-none shadow-[inset_0_1px_1px_rgba(0,0,0,0.05)] dark:shadow-none">
             <button
               onClick={() => setFilterStatus("activo")}
-              className={`px-3 py-1.5 font-bold uppercase transition-all ${
+              className={`px-4 py-1 rounded-md text-xs transition-all duration-150 ${
                 filterStatus === "activo" ? filterActiveStyle : filterInactiveStyle
               }`}
             >
@@ -722,7 +728,7 @@ export default function Home() {
             </button>
             <button
               onClick={() => setFilterStatus("resuelto")}
-              className={`px-3 py-1.5 font-bold uppercase transition-all border-l ${borderMain} ${
+              className={`px-4 py-1 rounded-md text-xs transition-all duration-150 ${
                 filterStatus === "resuelto" ? filterActiveStyle : filterInactiveStyle
               }`}
             >
@@ -757,137 +763,130 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className={`flex flex-col border ${borderMain} bg-white dark:bg-[#161618] rounded-2xl overflow-hidden shadow-xs`}>
                 {displayedCases.map((c) => {
                   const hasUnread = c.inicial?.hasUnread || c.levantamiento?.hasUnread;
                   return (
                     <div
                       key={c.id}
                       onClick={() => setSelectedCase(c)}
-                      className={`group relative cursor-pointer border ${borderMain} ${bgSecondary} rounded-md transition-all flex flex-col overflow-hidden`}
+                      className={`group relative cursor-pointer border-b ${borderMain} last:border-b-0 bg-transparent hover:bg-zinc-50/70 dark:hover:bg-zinc-800/20 transition-colors duration-150 grid grid-cols-2 items-stretch h-12 overflow-hidden`}
                     >
-                      {/* Cabecera de la Tarjeta (Sin bordes divisorios innecesarios, más limpio y respirable) */}
-                      <div className={`p-4 flex items-start justify-between gap-3 ${cardHeaderBg}`}>
-                        <div className="space-y-0.5 min-w-0">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider ${textSecondary}`}>
-                            CASO: {c.id.substring(0, 8)}...
-                          </span>
-                          <h4 className={`font-bold text-xs uppercase truncate pr-4 ${labelHeaderStyle}`} title={c.title}>
-                            {c.title || "Sin asunto"}
-                          </h4>
-                        </div>
-                        
+                      {/* Bloque Izquierdo (Input / Correo Inicial) */}
+                      <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0`}>
+                        {/* Fecha y hora a la izquierda */}
                         <div className="flex items-center gap-2 shrink-0">
-                          {/* Notificación no leído */}
                           {hasUnread && (
-                            <span className="flex h-2 w-2 relative">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600 dark:bg-blue-400"></span>
-                            </span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0"></span>
                           )}
-                          
-                          {/* Botón rápido para archivar */}
-                          {c.status === "activo" ? (
-                            <button
-                              onClick={(e) => archiveCase(c.id, e)}
-                              className={`p-1 rounded border ${borderMain} bg-transparent ${hoverBg} transition-colors`}
-                            >
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="21 8 21 21 3 21 3 8" />
-                                <rect x="1" y="3" width="22" height="5" />
-                                <line x1="10" y1="12" x2="14" y2="12" />
-                              </svg>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={(e) => unarchiveCase(c.id, e)}
-                              className={`p-1 rounded border ${borderMain} bg-transparent ${hoverBg} transition-colors`}
-                            >
-                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <polyline points="17 8 12 3 7 8" />
-                                <line x1="12" y1="3" x2="12" y2="15" />
-                              </svg>
-                            </button>
-                          )}
+                          <span className={`text-[10px] font-mono ${textSecondary}`}>
+                            {formatDateTime(c.inicial?.messages?.[0]?.date || c.createdAt)}
+                          </span>
                         </div>
+
+                        {/* Asunto a la derecha */}
+                        <span 
+                          className={`text-xs truncate pl-4 text-right ${
+                            hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
+                          }`}
+                          title={c.inicial?.subject || c.title}
+                        >
+                          {c.inicial?.subject || c.title || "Sin asunto"}
+                        </span>
                       </div>
 
-                      {/* Visualización Doble sin borde divisorio (respirable, separado por espacio) */}
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                        {/* Correo Inicial (Izquierda) */}
-                        <div className={`p-4 flex flex-col justify-between space-y-3 ${cardLeftBg}`}>
-                          <div className="space-y-1">
-                            <span className="text-[9px] font-bold tracking-widest text-blue-600 dark:text-blue-400 uppercase block">
-                              Inicial (Cliente)
-                            </span>
-                            <p className={`text-xs truncate font-medium ${labelHeaderStyle}`}>
-                              {c.inicial?.sender ? c.inicial.sender.split("<")[0].trim() : "Desconocido"}
-                            </p>
-                            <p className={`text-[10px] ${textSecondary} truncate`}>
-                              {c.inicial?.subject}
-                            </p>
-                          </div>
-                          
-                          <div className="flex items-center justify-between text-[9px] uppercase">
-                            <span className={textSecondary}>
-                              {formatDateTime(c.inicial?.messages?.[0]?.date || c.createdAt)}
-                            </span>
-                            <a
-                              href={`https://mail.google.com/mail/u/0/#search/${c.inicial?.threadId}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className={`${gmailLinkStyle} hover:font-bold`}
+                      {/* Bloque Derecho (Output / Correo Derivado) */}
+                      <div className={`flex items-center justify-between px-5 h-full min-w-0 ${
+                        !c.levantamiento ? 'bg-amber-500/[0.015] dark:bg-amber-500/[0.005]' : ''
+                      }`}>
+                        {c.levantamiento ? (
+                          <>
+                            {/* Asunto a la izquierda */}
+                            <span 
+                              className={`text-xs truncate pr-4 text-left ${
+                                hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
+                              }`}
+                              title={c.levantamiento.subject}
                             >
-                              Gmail ↗
-                            </a>
-                          </div>
-                        </div>
+                              {c.levantamiento.subject}
+                            </span>
 
-                        {/* Correo Levantamiento / Derivado (Derecha) */}
-                        <div className={`p-4 flex flex-col justify-between space-y-3 ${cardRightBg}`}>
-                          {c.levantamiento ? (
-                            <>
-                              <div className="space-y-1">
-                                <span className="text-[9px] font-bold tracking-widest text-purple-600 dark:text-purple-400 uppercase block">
-                                  Derivado (Legal/Mandante)
-                                </span>
-                                <p className={`text-xs truncate font-medium ${labelHeaderStyle}`}>
-                                  {c.levantamiento.recipient ? c.levantamiento.recipient.split("<")[0].trim() : "Desconocido"}
-                                </p>
-                                <p className={`text-[10px] ${textSecondary} truncate`}>
-                                  {c.levantamiento.subject}
-                                </p>
-                              </div>
-
-                              <div className="flex items-center justify-between text-[9px] uppercase">
-                                <span className={textSecondary}>
-                                  {formatDateTime(c.levantamiento.messages?.[0]?.date || c.updatedAt)}
-                                </span>
-                                <a
-                                  href={`https://mail.google.com/mail/u/0/#search/${c.levantamiento.threadId}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className={`${gmailLinkStyle} hover:font-bold`}
-                                >
-                                  Gmail ↗
-                                </a>
-                              </div>
-                            </>
-                          ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center py-4 text-center space-y-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
-                              <span className={`text-[10px] uppercase font-bold tracking-wider ${textSecondary}`}>
-                                Pendiente Derivación
+                            {/* Fecha y hora a la derecha / Botones rápidos en hover */}
+                            <div className="flex items-center gap-2 shrink-0 pl-4">
+                              <span className={`text-[10px] font-mono ${textSecondary} group-hover:hidden`}>
+                                {formatDateTime(c.levantamiento.messages?.[0]?.date || c.updatedAt)}
                               </span>
-                              <span className="text-[9px] text-gray-400 max-w-[150px]">
-                                Reenvía el correo inicial para vincularlo automáticamente.
-                              </span>
+                              <div className="hidden group-hover:flex items-center gap-1">
+                                {c.status === "activo" ? (
+                                  <button
+                                    onClick={(e) => archiveCase(c.id, e)}
+                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
+                                    title="Archivar Caso"
+                                  >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <polyline points="21 8 21 21 3 21 3 8" />
+                                      <rect x="1" y="3" width="22" height="5" />
+                                      <line x1="10" y1="12" x2="14" y2="12" />
+                                    </svg>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={(e) => unarchiveCase(c.id, e)}
+                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
+                                    title="Reabrir Caso"
+                                  >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                      <polyline points="17 8 12 3 7 8" />
+                                      <line x1="12" y1="3" x2="12" y2="15" />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Mensaje de Pendiente Derivación */}
+                            <span className="text-xs italic text-zinc-400 dark:text-zinc-500 font-medium truncate">
+                              Pendiente Derivación
+                            </span>
+
+                            {/* Acciones en hover para casos pendientes */}
+                            <div className="flex items-center gap-2 shrink-0 pl-4">
+                              <span className={`text-[10px] font-mono ${textSecondary} group-hover:hidden`}>
+                                --
+                              </span>
+                              <div className="hidden group-hover:flex items-center gap-1">
+                                {c.status === "activo" ? (
+                                  <button
+                                    onClick={(e) => archiveCase(c.id, e)}
+                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
+                                    title="Archivar Caso"
+                                  >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <polyline points="21 8 21 21 3 21 3 8" />
+                                      <rect x="1" y="3" width="22" height="5" />
+                                      <line x1="10" y1="12" x2="14" y2="12" />
+                                    </svg>
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={(e) => unarchiveCase(c.id, e)}
+                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
+                                    title="Reabrir Caso"
+                                  >
+                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                      <polyline points="17 8 12 3 7 8" />
+                                      <line x1="12" y1="3" x2="12" y2="15" />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
@@ -899,12 +898,12 @@ export default function Home() {
           {/* COLUMNA LATERAL (LEVANTAMIENTOS HUÉRFANOS) */}
           {orphanCases.length > 0 && (
             <aside className="w-full lg:w-80 shrink-0">
-              <div className={`border ${borderMain} ${bgSecondary} rounded-md p-5 space-y-4`}>
-                <div className={`flex items-center justify-between pb-2 border-b ${borderMain}`}>
-                  <h3 className="font-bold text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <div className={`border ${borderMain} bg-white dark:bg-zinc-900/30 rounded-2xl p-5 space-y-4 shadow-xs`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-xs tracking-wider flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200">
                     <span>Huérfanos ({orphanCases.length})</span>
                   </h3>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${badgeStyleYellow}`}>
+                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${badgeStyleYellow}`}>
                     Sin Vincular
                   </span>
                 </div>
@@ -917,10 +916,10 @@ export default function Home() {
                   {orphanCases.map((oc) => (
                     <div 
                       key={oc.id}
-                      className={`p-3 rounded text-xs space-y-3 ${innerCardBg}`}
+                      className={`p-3.5 rounded-2xl text-xs space-y-3 ${innerCardBg} shadow-2xs hover:shadow-xs transition-shadow`}
                     >
                       <div className="space-y-1">
-                        <p className={`font-bold truncate uppercase text-[11px] ${labelHeaderStyle}`} title={oc.title}>
+                        <p className={`font-semibold truncate uppercase text-[11px] ${labelHeaderStyle}`} title={oc.title}>
                           {oc.title}
                         </p>
                         <p className={`text-[10px] ${textSecondary} truncate`}>
@@ -931,8 +930,8 @@ export default function Home() {
                         </p>
                       </div>
 
-                      <div className={`flex items-center justify-between border-t ${borderMain} pt-2`}>
-                        <span className={`text-[9px] uppercase ${textSecondary}`}>
+                      <div className="flex items-center justify-between pt-1">
+                        <span className={`text-[9px] uppercase font-mono ${textSecondary}`}>
                           {formatDateTime(oc.createdAt)}
                         </span>
                         
@@ -941,14 +940,14 @@ export default function Home() {
                             href={`https://mail.google.com/mail/u/0/#search/${oc.levantamiento?.threadId}`}
                             target="_blank"
                             rel="noreferrer"
-                            className={`text-[9px] uppercase hover:font-bold ${gmailLinkStyle}`}
+                            className={`text-[9px] uppercase hover:font-semibold ${gmailLinkStyle}`}
                           >
                             Gmail
                           </a>
                           
                           <button
                             onClick={() => setIsLinkingOrphanId(oc.id)}
-                            className={`px-2 py-1 rounded text-[9px] font-bold uppercase hover:opacity-80 transition-opacity border ${linkButtonStyle}`}
+                            className={`px-2 py-1 rounded-lg text-[9px] font-bold uppercase border ${linkButtonStyle}`}
                           >
                             Vincular
                           </button>
@@ -967,28 +966,28 @@ export default function Home() {
       {/* MODAL: DETALLES DEL HILO */}
       {selectedCase && (
         <div 
-          className={`fixed inset-0 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in ${modalOverlayBg}`}
+          className={`fixed inset-0 flex items-center justify-center p-4 z-50 animate-fade-in ${modalOverlayBg}`}
           onClick={() => setSelectedCase(null)}
         >
           <div 
-            className={`w-full max-w-4xl border ${borderMain} rounded-lg overflow-hidden flex flex-col max-h-[90vh] ${modalContainerBg}`}
+            className={`w-full max-w-4xl border border-zinc-200/20 dark:border-zinc-800/15 rounded-3xl overflow-hidden flex flex-col max-h-[90vh] ${modalContainerBg} shadow-2xl shadow-zinc-200/20 dark:shadow-black/60`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header del Modal */}
-            <div className={`p-6 flex items-start justify-between gap-4 ${modalHeaderBg}`}>
-              <div className="space-y-1.5 flex-1 pr-4">
+            <div className={`p-6 pb-2 flex items-start justify-between gap-4 ${modalHeaderBg}`}>
+              <div className="space-y-2 flex-1 pr-4">
                 <div className="flex items-center gap-2">
                   {/* Corregido contraste del ID de caso para modo claro/oscuro */}
-                  <span className={`px-2 py-0.5 border ${borderMain} rounded text-[9px] font-bold uppercase ${
-                    theme === "light" ? "bg-gray-100 text-gray-700" : "bg-zinc-900 text-zinc-300"
+                  <span className={`px-2.5 py-0.5 border ${borderMain} rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                    theme === "light" ? "bg-zinc-100 text-zinc-650" : "bg-zinc-800 text-zinc-300"
                   }`}>
-                    ID: {selectedCase.id}
+                    ID: {selectedCase.id.substring(0, 8)}...
                   </span>
                   {/* Corregido contraste del tag de estado "activo/resuelto" para máxima legibilidad */}
-                  <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border ${
+                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
                     selectedCase.status === "activo" 
-                      ? (theme === "light" ? "bg-green-100 text-green-800 border-green-300" : "bg-green-950/40 text-green-300 border-green-900/50")
-                      : (theme === "light" ? "bg-gray-150 text-gray-700 border-gray-300" : "bg-zinc-900 text-zinc-400 border-zinc-800")
+                      ? (theme === "light" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-emerald-950/30 text-emerald-400 border-emerald-900/30")
+                      : (theme === "light" ? "bg-zinc-100 text-zinc-600 border-zinc-200" : "bg-zinc-800/80 text-zinc-400 border-zinc-700")
                   }`}>
                     {selectedCase.status}
                   </span>
@@ -1005,7 +1004,7 @@ export default function Home() {
                       if (e.key === "Enter") saveCaseTitle();
                       if (e.key === "Escape") setIsEditingTitle(false);
                     }}
-                    className={`bg-transparent border ${borderMain} px-2.5 py-1.5 rounded outline-none font-extrabold text-base uppercase ${textMain} w-full`}
+                    className={`bg-transparent border ${borderMain} px-3 py-2 rounded-xl outline-none font-extrabold text-base uppercase ${textMain} w-full focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600`}
                     autoFocus
                   />
                 ) : (
@@ -1025,10 +1024,10 @@ export default function Home() {
               {/* Botón de cerrar minimalista (Solo X) */}
               <button 
                 onClick={() => setSelectedCase(null)}
-                className={`w-8 h-8 flex items-center justify-center rounded border ${borderMain} ${hoverBg} transition-colors font-bold text-sm shrink-0`}
+                className={`w-8 h-8 flex items-center justify-center rounded-xl border ${borderMain} ${hoverBg} transition-all duration-150 font-semibold text-xs shrink-0 active:scale-95`}
                 title="Cerrar"
               >
-                X
+                ✕
               </button>
             </div>
 
@@ -1044,7 +1043,7 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 13l-7 7-7-7" />
                       </svg>
-                      <span className="text-[11px] text-gray-500 dark:text-zinc-400 truncate font-medium">
+                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate font-semibold uppercase tracking-wider">
                         {cleanSenderName(selectedCase.inicial.sender)} | {cleanSenderEmail(selectedCase.inicial.sender)}
                       </span>
                     </div>
@@ -1054,8 +1053,8 @@ export default function Home() {
                       {selectedCase.inicial.messages?.map((msg, index) => (
                         <div key={msg.messageId || index} className="flex items-center justify-between gap-3 text-xs">
                           {/* Pastilla con hora y asunto del correo */}
-                          <div className={`px-3 py-1.5 rounded-full ${messageItemBg} flex items-center gap-2 max-w-[80%] truncate`}>
-                            <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 shrink-0">
+                          <div className={`px-4 py-2.5 rounded-xl ${messageItemBg} flex items-center gap-2.5 max-w-[85%] truncate shadow-2xs`}>
+                            <span className="text-[9px] font-bold font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
                               {formatDateTime(msg.date)}
                             </span>
                             <span className={`truncate font-medium ${labelHeaderStyle}`} title={msg.subject}>
@@ -1088,7 +1087,7 @@ export default function Home() {
                       <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 11l7-7 7 7" />
                       </svg>
-                      <span className="text-[11px] text-gray-500 dark:text-zinc-400 truncate font-medium">
+                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate font-semibold uppercase tracking-wider">
                         {cleanSenderName(selectedCase.levantamiento.recipient)} | {cleanSenderEmail(selectedCase.levantamiento.recipient)}
                       </span>
                     </div>
@@ -1098,8 +1097,8 @@ export default function Home() {
                       {selectedCase.levantamiento.messages?.map((msg, index) => (
                         <div key={msg.messageId || index} className="flex items-center justify-between gap-3 text-xs">
                           {/* Pastilla con hora y asunto del correo */}
-                          <div className={`px-3 py-1.5 rounded-full ${messageItemBg} flex items-center gap-2 max-w-[80%] truncate`}>
-                            <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 shrink-0">
+                          <div className={`px-4 py-2.5 rounded-xl ${messageItemBg} flex items-center gap-2.5 max-w-[85%] truncate shadow-2xs`}>
+                            <span className="text-[9px] font-bold font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
                               {formatDateTime(msg.date)}
                             </span>
                             <span className={`truncate font-medium ${labelHeaderStyle}`} title={msg.subject}>
@@ -1119,8 +1118,8 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  <div className="h-32 rounded flex flex-col items-center justify-center p-6 text-center space-y-3 bg-white/5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse" />
+                  <div className="h-32 rounded-xl flex flex-col items-center justify-center p-6 text-center space-y-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-dashed border-zinc-200 dark:border-zinc-800">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                     <p className={`text-[10px] ${textSecondary} max-w-xs`}>
                       No se ha registrado derivación todavía.
                     </p>
@@ -1131,7 +1130,7 @@ export default function Home() {
                           setSelectedCase(null);
                           setIsLinkingOrphanId(orphanCases[0].id);
                         }}
-                        className={`px-3 py-1 rounded text-[9px] font-bold uppercase hover:opacity-85 transition-opacity border ${linkButtonStyle}`}
+                        className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase border ${linkButtonStyle}`}
                       >
                         Vincular
                       </button>
@@ -1143,12 +1142,12 @@ export default function Home() {
             </div>
 
             {/* Footer del Modal */}
-            <div className={`p-6 flex flex-wrap gap-4 items-center justify-between ${modalFooterBg}`}>
+            <div className={`p-6 pt-2 flex flex-wrap gap-4 items-center justify-between ${modalFooterBg}`}>
               <div>
                 {(selectedCase.inicial?.hasUnread || selectedCase.levantamiento?.hasUnread) && (
                   <button
                     onClick={() => markAsRead(selectedCase.id)}
-                    className={`px-4 py-2 font-bold text-xs uppercase rounded transition-colors ${secondaryButtonStyle}`}
+                    className={`px-4 py-2 font-bold text-xs uppercase rounded-lg transition-colors ${secondaryButtonStyle}`}
                   >
                     Marcar como leído
                   </button>
@@ -1159,14 +1158,14 @@ export default function Home() {
                 {selectedCase.status === "activo" ? (
                   <button
                     onClick={() => archiveCase(selectedCase.id)}
-                    className={`px-4 py-2 text-xs font-bold uppercase rounded transition-colors ${dangerButtonStyle}`}
+                    className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${dangerButtonStyle}`}
                   >
                     Archivar Caso
                   </button>
                 ) : (
                   <button
                     onClick={() => unarchiveCase(selectedCase.id)}
-                    className={`px-4 py-2 text-xs font-bold uppercase rounded hover:opacity-85 transition-opacity ${primaryButtonStyle}`}
+                    className={`px-4 py-2 text-xs font-bold uppercase rounded-lg hover:opacity-85 transition-opacity ${primaryButtonStyle}`}
                   >
                     Reabrir Caso
                   </button>
@@ -1180,18 +1179,18 @@ export default function Home() {
       {/* MODAL: VINCULACIÓN MANUAL */}
       {isLinkingOrphanId && (
         <div 
-          className={`fixed inset-0 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in ${modalOverlayBg}`}
+          className={`fixed inset-0 flex items-center justify-center p-4 z-50 animate-fade-in ${modalOverlayBg}`}
           onClick={() => {
             setIsLinkingOrphanId(null);
             setLinkSearchTerm("");
           }}
         >
           <div 
-            className={`w-full max-w-md border ${borderMain} rounded-lg overflow-hidden flex flex-col ${modalContainerBg}`}
+            className={`w-full max-w-md border border-zinc-200/20 dark:border-zinc-800/15 rounded-3xl overflow-hidden flex flex-col ${modalContainerBg} shadow-2xl shadow-zinc-200/20 dark:shadow-black/60`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className={`p-5 border-b ${borderMain} ${cardLeftBg}`}>
-              <h3 className={`font-extrabold text-sm uppercase ${labelHeaderStyle}`}>
+            <div className={`p-5 pb-2 ${modalHeaderBg}`}>
+              <h3 className={`font-extrabold text-sm uppercase tracking-wider ${labelHeaderStyle}`}>
                 Vincular correo derivado
               </h3>
               <p className={`text-[10px] ${textSecondary} mt-1`}>
@@ -1202,7 +1201,7 @@ export default function Home() {
             <div className="p-5 space-y-4 flex-1 overflow-y-auto max-h-96">
               {/* Buscador */}
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-bold tracking-wider block">
+                <label className="text-[10px] uppercase font-bold tracking-wider block text-zinc-500 dark:text-zinc-400">
                   Buscar caso inicial
                 </label>
                 <input 
@@ -1210,13 +1209,13 @@ export default function Home() {
                   value={linkSearchTerm}
                   onChange={(e) => setLinkSearchTerm(e.target.value)}
                   placeholder="Asunto, remitente o ID del caso..."
-                  className={`w-full px-3 py-2 border ${borderMain} ${inputBg} ${textMain} text-xs rounded outline-none focus:ring-1 focus:ring-black dark:focus:ring-white`}
+                  className={`w-full px-3.5 py-2 border ${borderMain} ${inputBg} ${textMain} text-xs rounded-xl outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650 transition-all`}
                 />
               </div>
 
               {/* Lista de casos iniciales activos que no tienen levantamiento aún */}
               <div className="space-y-2">
-                <span className="text-[10px] uppercase font-bold tracking-wider block">
+                <span className="text-[10px] uppercase font-bold tracking-wider block text-zinc-500 dark:text-zinc-400">
                   Casos Iniciales Disponibles
                 </span>
                 
@@ -1242,7 +1241,7 @@ export default function Home() {
                         <div 
                           key={c.id}
                           onClick={() => handleLinkOrphan(c.id)}
-                          className={`p-3 rounded cursor-pointer ${hoverBg} transition-colors flex items-center justify-between ${innerCardBg}`}
+                          className={`p-3.5 rounded-xl cursor-pointer ${hoverBg} transition-all duration-150 flex items-center justify-between ${innerCardBg} shadow-2xs hover:shadow-xs`}
                         >
                           <div className="min-w-0 flex-1 pr-3">
                             <p className={`font-bold text-[11px] truncate uppercase ${labelHeaderStyle}`}>
@@ -1263,13 +1262,13 @@ export default function Home() {
               </div>
             </div>
 
-            <div className={`p-4 border-t ${borderMain} text-right ${cardLeftBg}`}>
+            <div className={`p-4 border-t ${borderMain} text-right ${modalFooterBg}`}>
               <button
                 onClick={() => {
                   setIsLinkingOrphanId(null);
                   setLinkSearchTerm("");
                 }}
-                className={`px-3 py-1.5 rounded text-xs font-bold uppercase transition-colors ${secondaryButtonStyle}`}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors ${secondaryButtonStyle}`}
               >
                 Cancelar
               </button>
