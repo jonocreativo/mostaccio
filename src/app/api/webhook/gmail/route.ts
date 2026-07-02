@@ -40,7 +40,8 @@ export async function POST(request: Request) {
       body, 
       type,
       inReplyTo,
-      references
+      references,
+      rfcMessageId
     } = payload;
 
     if (!threadId || !messageId) {
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
 
     const messageData = {
       messageId,
+      rfcMessageId: rfcMessageId || "",
       sender: sender || "",
       recipient: recipient || "",
       subject: subject || "",
