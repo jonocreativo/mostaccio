@@ -1193,7 +1193,9 @@ export default function Home() {
             >
               <span>Huérfanos</span>
               {orphanCases.length > 0 && (
-                <span className="w-1.5 h-1.5 bg-red-650 dark:bg-red-500 rounded-full shrink-0" />
+                <span className="flex items-center justify-center bg-red-650 dark:bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-4">
+                  {orphanCases.length}
+                </span>
               )}
             </button>
           </div>

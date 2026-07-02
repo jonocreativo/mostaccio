@@ -27,6 +27,14 @@ function cleanMessageId(id: string): string {
   return id.replace(/[<>]/g, "").trim();
 }
 
+// Función para extraer el asunto original del cuerpo de un correo reenviado
+function extractOriginalSubjectFromBody(body: string): string | null {
+  if (!body) return null;
+  // Busca líneas que comiencen con "Subject:" o "Asunto:" en cualquier parte del cuerpo (multiline/case-insensitive)
+  const match = body.match(/^(?:Subject|Asunto):\s*(.+)$/im);
+  return match ? match[1].trim() : null;
+}
+
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
@@ -193,20 +201,36 @@ export async function POST(request: Request) {
 
       // 2. Coincidencia por Asunto (Fallback si las cabeceras no coinciden o no existen)
       if (!matchedCaseId) {
-        const cleanedLevantamientoSubject = cleanSubject(subject);
-        for (const caseDoc of activeCasesSnap.docs) {
-          const caseData = caseDoc.data();
-          if (!caseData.levantamiento) {
-            const cleanedInicialSubject = cleanSubject(caseData.inicial?.subject || "");
-            if (
-              cleanedInicialSubject && cleanedLevantamientoSubject &&
-              (cleanedLevantamientoSubject.includes(cleanedInicialSubject) ||
-                cleanedInicialSubject.includes(cleanedLevantamientoSubject))
-            ) {
-              matchedCaseId = caseDoc.id;
-              break;
+        const subjectsToTry: string[] = [];
+        
+        // 2a. Intentar con el asunto del correo actual
+        if (subject) {
+          subjectsToTry.push(cleanSubject(subject));
+        }
+        
+        // 2b. Intentar extraer el asunto original desde el cuerpo del correo (por si es reenvío con asunto cambiado)
+        const originalSubject = extractOriginalSubjectFromBody(body);
+        if (originalSubject) {
+          subjectsToTry.push(cleanSubject(originalSubject));
+        }
+
+        for (const cleanSubj of subjectsToTry) {
+          if (!cleanSubj) continue;
+          for (const caseDoc of activeCasesSnap.docs) {
+            const caseData = caseDoc.data();
+            if (!caseData.levantamiento) {
+              const cleanedInicialSubject = cleanSubject(caseData.inicial?.subject || "");
+              if (
+                cleanedInicialSubject &&
+                (cleanSubj.includes(cleanedInicialSubject) ||
+                  cleanedInicialSubject.includes(cleanSubj))
+              ) {
+                matchedCaseId = caseDoc.id;
+                break;
+              }
             }
           }
+          if (matchedCaseId) break;
         }
       }
 
