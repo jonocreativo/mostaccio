@@ -25,3 +25,26 @@
 .animate-dropdown-in {
   animation: dropdown-fade-in 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes toast-in-out {
+  0% {
+    opacity: 0;
+    transform: translateX(120%) scale(0.9);
+  }
+  8% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  92% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(120%) scale(0.9);
+  }
+}
+
+.animate-toast {
+  animation: toast-in-out 4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

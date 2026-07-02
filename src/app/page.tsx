@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth, googleProvider, db } from "@/firebase";
 import { collection, onSnapshot, updateDoc, deleteDoc, doc, deleteField } from "firebase/firestore";
@@ -36,6 +36,20 @@ interface Case {
   postMortem?: string;
   pinned?: boolean;
   starred?: boolean;
+}
+
+interface AppNotification {
+  id: string;
+  message: string;
+  timestamp: string;
+  type: "new_thread" | "new_orphan" | "archived" | "reopened" | "linked";
+  read: boolean;
+}
+
+interface ToastMessage {
+  id: string;
+  message: string;
+  type: "new_thread" | "new_orphan" | "archived" | "reopened" | "linked";
 }
 
 export default function Home() {
@@ -77,7 +91,16 @@ export default function Home() {
   const [activeLinkInitialCaseId, setActiveLinkInitialCaseId] = useState<string | null>(null);
   const [activeMenuCaseId, setActiveMenuCaseId] = useState<string | null>(null);
   const [linkSearchTerm, setLinkSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"activo" | "resuelto">("activo");
+  const [filterStatus, setFilterStatus] = useState<"activo" | "resuelto" | "huerfanos">("activo");
+
+  // Estados de Notificaciones
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  // Referencias para seguimiento en tiempo real
+  const prevCasesRef = useRef<Case[]>([]);
+  const isFirstLoadRef = useRef(true);
 
   // Estado para controlar qué mensajes están expandidos en el modal
   const [expandedMessageIds, setExpandedMessageIds] = useState<Record<string, boolean>>({});
@@ -152,6 +175,48 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
+  // Close notifications dropdown on click outside
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setIsNotificationsOpen(false);
+    };
+    if (isNotificationsOpen) {
+      window.addEventListener("click", handleOutsideClick);
+    }
+    return () => {
+      window.removeEventListener("click", handleOutsideClick);
+    };
+  }, [isNotificationsOpen]);
+
+  // Función para disparar notificaciones persistentes y toasts flotantes
+  const triggerNotification = (message: string, type: AppNotification["type"]) => {
+    const id = Math.random().toString(36).substring(2, 9);
+    const timestamp = new Date().toISOString();
+
+    // 1. Notificación persistente
+    const newNotification: AppNotification = {
+      id,
+      message,
+      timestamp,
+      type,
+      read: false
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+
+    // 2. Toast temporal (duración 4s)
+    const newToast: ToastMessage = {
+      id,
+      message,
+      type
+    };
+    setToasts(prev => [...prev, newToast]);
+
+    // Autodestruir el toast después de 4 segundos (duración de la animación)
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
+
   // Escucha en tiempo real de los casos en Firestore
   useEffect(() => {
     if (!user) return;
@@ -161,7 +226,42 @@ export default function Home() {
       snapshot.forEach((doc) => {
         list.push({ id: doc.id, ...doc.data() } as Case);
       });
+
+      // Lógica de detección de cambios en tiempo real para notificaciones y toasts
+      if (isFirstLoadRef.current) {
+        isFirstLoadRef.current = false;
+      } else {
+        snapshot.docChanges().forEach((change) => {
+          const docId = change.doc.id;
+          const data = change.doc.data() as Case;
+          const prevCases = prevCasesRef.current;
+
+          if (change.type === "added") {
+            const isOrphan = !data.inicial && data.levantamiento;
+            const message = isOrphan 
+              ? `Nuevo huérfano detectado: ${data.levantamiento?.subject || data.title}`
+              : `Nuevo hilo creado: ${data.inicial?.subject || data.title}`;
+            const notificationType = isOrphan ? "new_orphan" : "new_thread";
+
+            triggerNotification(message, notificationType);
+          } else if (change.type === "modified") {
+            const prev = prevCases.find(c => c.id === docId);
+            if (prev) {
+              if (prev.status === "activo" && data.status === "resuelto") {
+                triggerNotification(`Hilo archivado: ${data.inicial?.subject || data.title}`, "archived");
+              } else if (prev.status === "resuelto" && data.status === "activo") {
+                triggerNotification(`Hilo reabierto: ${data.inicial?.subject || data.title}`, "reopened");
+              }
+              if (!prev.levantamiento && data.levantamiento) {
+                triggerNotification(`Derivación vinculada al hilo: ${data.inicial?.subject || data.title}`, "linked");
+              }
+            }
+          }
+        });
+      }
+
       setCases(list);
+      prevCasesRef.current = list;
     }, (error) => {
       console.error("Error al escuchar Firestore:", error);
     });
@@ -914,6 +1014,127 @@ export default function Home() {
               )}
             </div>
 
+            {/* Campana de Notificaciones */}
+            <div className="relative">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsNotificationsOpen(!isNotificationsOpen);
+                }}
+                className={`p-1.5 rounded-lg border ${borderMain} bg-white dark:bg-[#161618] hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all active:scale-95 relative flex items-center justify-center`}
+                title="Notificaciones"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {notifications.some(n => !n.read) && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                )}
+              </button>
+
+              {/* Dropdown de Notificaciones */}
+              {isNotificationsOpen && (
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className={`absolute right-0 top-9 w-80 border ${borderMain} bg-white dark:bg-[#161618] rounded-2xl p-2.5 z-50 shadow-xl animate-dropdown-in origin-top-right`}
+                >
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100/60 dark:border-zinc-800/20 select-none">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${textSecondary}`}>
+                      Notificaciones
+                    </span>
+                    {notifications.length > 0 && (
+                      <button
+                        onClick={() => {
+                          setNotifications([]);
+                          setIsNotificationsOpen(false);
+                        }}
+                        className="text-[10px] font-bold uppercase text-zinc-400 hover:text-zinc-850 dark:hover:text-zinc-150 transition-colors"
+                      >
+                        Limpiar todo
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="max-h-72 overflow-y-auto mt-1.5 space-y-0.5 pr-1">
+                    {notifications.length === 0 ? (
+                      <p className={`text-xs ${textSecondary} text-center py-6 italic`}>
+                        Sin notificaciones recientes
+                      </p>
+                    ) : (
+                      notifications.map((notif) => {
+                        // Marcar como leída después de abrir el dropdown
+                        if (!notif.read) {
+                          setTimeout(() => {
+                            setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
+                          }, 1500);
+                        }
+
+                        // Icono basado en el tipo de notificación
+                        let icon = (
+                          <svg className="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                            <polyline points="22,6 12,13 2,6" />
+                          </svg>
+                        );
+                        if (notif.type === "new_orphan") {
+                          icon = (
+                            <svg className="w-3.5 h-3.5 text-amber-500 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                              <line x1="12" y1="9" x2="12" y2="13" />
+                              <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                          );
+                        } else if (notif.type === "archived") {
+                          icon = (
+                            <svg className="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="21 8 21 21 3 21 3 8" />
+                              <rect x="1" y="3" width="22" height="5" />
+                              <line x1="10" y1="12" x2="14" y2="12" />
+                            </svg>
+                          );
+                        } else if (notif.type === "reopened") {
+                          icon = (
+                            <svg className="w-3.5 h-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="17 8 12 3 7 8" />
+                              <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                          );
+                        } else if (notif.type === "linked") {
+                          icon = (
+                            <svg className="w-3.5 h-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                          );
+                        }
+
+                        return (
+                          <div
+                            key={notif.id}
+                            className={`flex gap-3 p-2.5 rounded-xl border border-transparent transition-opacity ${
+                              notif.read ? "opacity-70" : "bg-zinc-50/70 dark:bg-zinc-900/40 font-medium"
+                            }`}
+                          >
+                            <div className="shrink-0 mt-0.5">{icon}</div>
+                            <div className="flex-1 min-w-0 space-y-0.5">
+                              <p className="text-[11px] leading-snug break-words text-zinc-850 dark:text-zinc-200">
+                                {notif.message}
+                              </p>
+                              <span className={`text-[8px] font-mono block ${textSecondary}`}>
+                                {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Foto de Perfil */}
             <button
               onClick={(e) => {
@@ -992,15 +1213,96 @@ export default function Home() {
             >
               Archivados ({archivedCases.length})
             </button>
+            <button
+              onClick={() => setFilterStatus("huerfanos")}
+              className={`px-4 py-1 rounded-md text-xs flex items-center gap-1.5 transition-all duration-150 ${
+                filterStatus === "huerfanos" ? filterActiveStyle : filterInactiveStyle
+              }`}
+            >
+              <span>Huérfanos</span>
+              {orphanCases.length > 0 && (
+                <span className="flex items-center justify-center bg-[#F99243] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-4 animate-pulse">
+                  {orphanCases.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
-        {/* CONTENIDO PRINCIPAL LAYOUT DE HILOS */}
-        <main className="flex-1 overflow-y-auto p-8 flex flex-col lg:flex-row gap-8">
+        <main className="flex-1 overflow-y-auto p-8">
           
           {/* COLUMNA DE CARDS DE HILOS */}
-          <div className="flex-1 space-y-6">
-            {displayedCases.length === 0 ? (
+          <div className="space-y-6">
+            {filterStatus === "huerfanos" ? (
+              orphanCases.length === 0 ? (
+                <div className="h-64 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className={`w-12 h-12 rounded-full border ${borderMain} ${bgSecondary} flex items-center justify-center`}>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2m0 0V6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold uppercase tracking-wider text-xs">Sin hilos huérfanos</h3>
+                    <p className={`text-xs ${textSecondary} mt-1 max-w-xs`}>
+                      No hay correos de derivación huérfanos sin vincular en este momento.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {orphanCases.map((oc) => (
+                    <div 
+                      key={oc.id}
+                      className={`p-5 rounded-2xl text-xs space-y-4 ${innerCardBg} shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between`}
+                    >
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-start gap-2">
+                          <p className={`font-semibold uppercase text-xs ${labelHeaderStyle} truncate flex-1`} title={oc.title}>
+                            {oc.title}
+                          </p>
+                          <span className={`text-[8px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 ${badgeStyleYellow}`}>
+                            Huérfano
+                          </span>
+                        </div>
+                        <div className={`text-[10px] ${textSecondary} space-y-0.5`}>
+                          <p className="truncate"><span className="font-medium">De:</span> {oc.levantamiento?.sender || "Desconocido"}</p>
+                          <p className="truncate"><span className="font-medium">Para:</span> {oc.levantamiento?.recipient || "Desconocido"}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-zinc-100/60 dark:border-zinc-800/20">
+                        <span className={`text-[9px] font-mono ${textSecondary}`}>
+                          {formatDateTime(oc.createdAt)}
+                        </span>
+                        
+                        <div className="flex items-center gap-2.5">
+                          <a
+                            href={`https://mail.google.com/mail/u/0/#all/${oc.levantamiento?.threadId}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`inline-flex items-center gap-1 text-[9px] uppercase font-bold hover:font-semibold ${gmailLinkStyle}`}
+                          >
+                            <span>Gmail</span>
+                            <svg className="w-2.5 h-2.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                          </a>
+                          
+                          <button
+                            onClick={() => setIsLinkingOrphanId(oc.id)}
+                            className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase border ${linkButtonStyle} active:scale-95 transition-all`}
+                          >
+                            Vincular
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : displayedCases.length === 0 ? (
               <div className="h-64 flex flex-col items-center justify-center text-center space-y-4">
                 <div className={`w-12 h-12 rounded-full border ${borderMain} ${bgSecondary} flex items-center justify-center`}>
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -1237,77 +1539,6 @@ export default function Home() {
               </div>
             )}
           </div>
-
-          {/* COLUMNA LATERAL (LEVANTAMIENTOS HUÉRFANOS) */}
-          {orphanCases.length > 0 && (
-            <aside className="w-full lg:w-80 shrink-0">
-              <div className={`border ${borderMain} bg-white dark:bg-zinc-900/30 rounded-2xl p-5 space-y-4 shadow-xs`}>
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-xs tracking-wider flex items-center gap-1.5 text-zinc-800 dark:text-zinc-200">
-                    <span>Huérfanos ({orphanCases.length})</span>
-                  </h3>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${badgeStyleYellow}`}>
-                    Sin Vincular
-                  </span>
-                </div>
-
-                <p className={`text-[10px] ${textSecondary}`}>
-                  Correos de levantamiento/derivación detectados que no pudieron asociarse automáticamente.
-                </p>
-
-                <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                  {orphanCases.map((oc) => (
-                    <div 
-                      key={oc.id}
-                      className={`p-3.5 rounded-2xl text-xs space-y-3 ${innerCardBg} shadow-2xs hover:shadow-xs transition-shadow`}
-                    >
-                      <div className="space-y-1">
-                        <p className={`font-semibold truncate uppercase text-[11px] ${labelHeaderStyle}`} title={oc.title}>
-                          {oc.title}
-                        </p>
-                        <p className={`text-[10px] ${textSecondary} truncate`}>
-                          De: {oc.levantamiento?.sender?.split("<")[0] || "Desconocido"}
-                        </p>
-                        <p className={`text-[10px] ${textSecondary} truncate`}>
-                          Para: {oc.levantamiento?.recipient?.split("<")[0] || "Desconocido"}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1">
-                        <span className={`text-[9px] uppercase font-mono ${textSecondary}`}>
-                          {formatDateTime(oc.createdAt)}
-                        </span>
-                        
-                        <div className="flex items-center gap-2">
-                          <a
-                            href={`https://mail.google.com/mail/u/0/#all/${oc.levantamiento?.threadId}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={`inline-flex items-center gap-1 text-[9px] uppercase font-bold hover:font-semibold ${gmailLinkStyle}`}
-                          >
-                            <span>Gmail</span>
-                            <svg className="w-2.5 h-2.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                              <polyline points="15 3 21 3 21 9" />
-                              <line x1="10" y1="14" x2="21" y2="3" />
-                            </svg>
-                          </a>
-                          
-                          <button
-                            onClick={() => setIsLinkingOrphanId(oc.id)}
-                            className={`px-2 py-1 rounded-lg text-[9px] font-bold uppercase border ${linkButtonStyle}`}
-                          >
-                            Vincular
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </aside>
-          )}
-
         </main>
       </div>
 
@@ -1814,6 +2045,71 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* CONTENEDOR DE TOASTS EMERGENTES */}
+      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 max-w-sm pointer-events-none">
+        {toasts.map((toast) => {
+          let icon = (
+            <svg className="w-4 h-4 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+          );
+          if (toast.type === "new_orphan") {
+            icon = (
+              <svg className="w-4 h-4 text-amber-500 shrink-0 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            );
+          } else if (toast.type === "archived") {
+            icon = (
+              <svg className="w-4 h-4 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
+            );
+          } else if (toast.type === "reopened") {
+            icon = (
+              <svg className="w-4 h-4 text-emerald-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+            );
+          } else if (toast.type === "linked") {
+            icon = (
+              <svg className="w-4 h-4 text-indigo-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+            );
+          }
+
+          return (
+            <div
+              key={toast.id}
+              className="pointer-events-auto flex items-start gap-3.5 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#161618] shadow-xl animate-toast min-w-[280px]"
+            >
+              <div className="mt-0.5">{icon}</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                  {toast.type === "new_thread" && "Nuevo Hilo"}
+                  {toast.type === "new_orphan" && "Caso Huérfano"}
+                  {toast.type === "archived" && "Hilo Archivado"}
+                  {toast.type === "reopened" && "Hilo Reabierto"}
+                  {toast.type === "linked" && "Caso Vinculado"}
+                </p>
+                <p className="text-xs font-semibold leading-snug text-zinc-850 dark:text-zinc-100 mt-0.5 break-words">
+                  {toast.message}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
     </div>
   );
