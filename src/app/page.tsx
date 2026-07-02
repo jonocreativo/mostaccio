@@ -33,6 +33,7 @@ interface Case {
   updatedAt: string;
   inicial?: EmailGroup;
   levantamiento?: EmailGroup;
+  postMortem?: string;
 }
 
 export default function Home() {
@@ -50,6 +51,22 @@ export default function Home() {
   // Case title edit states
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
+
+  // Post-mortem states
+  const [isEditingPostMortem, setIsEditingPostMortem] = useState(false);
+  const [tempPostMortem, setTempPostMortem] = useState("");
+
+  // Obtener mensajes cronológicos combinando inicial y levantamiento
+  const getChronologicalMessages = (c: Case) => {
+    const list: { msg: Message; type: "inicial" | "levantamiento" }[] = [];
+    if (c.inicial?.messages) {
+      c.inicial.messages.forEach(m => list.push({ msg: m, type: "inicial" }));
+    }
+    if (c.levantamiento?.messages) {
+      c.levantamiento.messages.forEach(m => list.push({ msg: m, type: "levantamiento" }));
+    }
+    return list.sort((a, b) => new Date(a.msg.date).getTime() - new Date(b.msg.date).getTime());
+  };
 
   // Firestore states
   const [cases, setCases] = useState<Case[]>([]);
@@ -106,11 +123,25 @@ export default function Home() {
   useEffect(() => {
     if (selectedCase) {
       const current = cases.find(c => c.id === selectedCase.id);
-      if (current && current.title !== selectedCase.title) {
-        setSelectedCase(current);
+      if (current) {
+        if (current.title !== selectedCase.title) {
+          setSelectedCase(current);
+        }
+        // Also sync postMortem if it changed in Firestore
+        if (current.postMortem !== selectedCase.postMortem) {
+          setSelectedCase(current);
+        }
       }
     }
   }, [cases, selectedCase]);
+
+  // Sync post-mortem note when selectedCase is opened
+  useEffect(() => {
+    if (selectedCase) {
+      setTempPostMortem(selectedCase.postMortem || "");
+      setIsEditingPostMortem(!selectedCase.postMortem);
+    }
+  }, [selectedCase?.id]);
 
   // Load nickname from localStorage once user is loaded
   useEffect(() => {
@@ -196,6 +227,51 @@ export default function Home() {
       }
     }
     setIsEditingTitle(false);
+  };
+
+  // Save post-mortem action
+  const savePostMortem = async (caseId: string, text: string) => {
+    try {
+      const caseRef = doc(db, "cases", caseId);
+      await updateDoc(caseRef, {
+        postMortem: text.trim(),
+        updatedAt: new Date().toISOString()
+      });
+      setSelectedCase(prev => prev ? { ...prev, postMortem: text.trim() } : null);
+      setIsEditingPostMortem(false);
+    } catch (err) {
+      console.error("Error al guardar post-mortem:", err);
+    }
+  };
+
+  // Delete post-mortem action
+  const deletePostMortem = async (caseId: string) => {
+    try {
+      const caseRef = doc(db, "cases", caseId);
+      await updateDoc(caseRef, {
+        postMortem: "",
+        updatedAt: new Date().toISOString()
+      });
+      setSelectedCase(prev => prev ? { ...prev, postMortem: "" } : null);
+      setTempPostMortem("");
+      setIsEditingPostMortem(true);
+    } catch (err) {
+      console.error("Error al eliminar post-mortem:", err);
+    }
+  };
+
+  // Toggle case status action (activo / resuelto)
+  const toggleCaseStatus = async (caseId: string, newStatus: string) => {
+    try {
+      const caseRef = doc(db, "cases", caseId);
+      await updateDoc(caseRef, {
+        status: newStatus,
+        updatedAt: new Date().toISOString()
+      });
+      setSelectedCase(prev => prev ? { ...prev, status: newStatus } : null);
+    } catch (err) {
+      console.error("Error al actualizar estado del caso:", err);
+    }
   };
 
   // Acciones sobre los casos
@@ -964,217 +1040,280 @@ export default function Home() {
       </div>
 
       {/* MODAL: DETALLES DEL HILO */}
-      {selectedCase && (
-        <div 
-          className={`fixed inset-0 flex items-center justify-center p-4 z-50 animate-fade-in ${modalOverlayBg}`}
-          onClick={() => setSelectedCase(null)}
-        >
+          {selectedCase && (() => {
+            const chronologicalMessages = getChronologicalMessages(selectedCase);
+            return (
           <div 
-            className={`w-full max-w-4xl border border-zinc-200/20 dark:border-zinc-800/15 rounded-3xl overflow-hidden flex flex-col max-h-[90vh] ${modalContainerBg} shadow-2xl shadow-zinc-200/20 dark:shadow-black/60`}
-            onClick={(e) => e.stopPropagation()}
+            className={`fixed inset-0 flex items-center justify-center p-4 z-50 animate-fade-in ${modalOverlayBg}`}
+            onClick={() => setSelectedCase(null)}
           >
-            {/* Header del Modal */}
-            <div className={`p-6 pb-2 flex items-start justify-between gap-4 ${modalHeaderBg}`}>
-              <div className="space-y-2 flex-1 pr-4">
-                <div className="flex items-center gap-2">
-                  {/* Corregido contraste del ID de caso para modo claro/oscuro */}
-                  <span className={`px-2.5 py-0.5 border ${borderMain} rounded-full text-[9px] font-bold uppercase tracking-wider ${
-                    theme === "light" ? "bg-zinc-100 text-zinc-650" : "bg-zinc-800 text-zinc-300"
-                  }`}>
-                    ID: {selectedCase.id.substring(0, 8)}...
-                  </span>
-                  {/* Corregido contraste del tag de estado "activo/resuelto" para máxima legibilidad */}
-                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
-                    selectedCase.status === "activo" 
-                      ? (theme === "light" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-emerald-950/30 text-emerald-400 border-emerald-900/30")
-                      : (theme === "light" ? "bg-zinc-100 text-zinc-600 border-zinc-200" : "bg-zinc-800/80 text-zinc-400 border-zinc-700")
-                  }`}>
-                    {selectedCase.status}
-                  </span>
+            <div 
+              className={`w-full max-w-4xl border border-zinc-200/20 dark:border-zinc-800/15 rounded-3xl overflow-hidden flex flex-col max-h-[90vh] ${modalContainerBg} shadow-2xl shadow-zinc-200/20 dark:shadow-black/60`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header del Modal */}
+              <div className={`p-6 pb-4 flex items-start justify-between gap-4 border-b ${borderMain} ${modalHeaderBg}`}>
+                <div className="space-y-2 flex-1 pr-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-0.5 border ${borderMain} rounded-full text-[9px] font-bold uppercase tracking-wider ${
+                      theme === "light" ? "bg-zinc-100 text-zinc-650" : "bg-zinc-800 text-zinc-300"
+                    }`}>
+                      ID: {selectedCase.id.substring(0, 8)}...
+                    </span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                      selectedCase.status === "activo" 
+                        ? (theme === "light" ? "bg-emerald-50 text-emerald-700 border-emerald-250" : "bg-emerald-950/30 text-emerald-400 border-emerald-900/30")
+                        : (theme === "light" ? "bg-zinc-100 text-zinc-650 border-zinc-250" : "bg-zinc-800/80 text-zinc-400 border-zinc-700")
+                    }`}>
+                      {selectedCase.status}
+                    </span>
+                  </div>
+                  
+                  {/* Título de caso editable con clic directo */}
+                  {isEditingTitle ? (
+                    <input
+                      type="text"
+                      value={tempTitle}
+                      onChange={(e) => setTempTitle(e.target.value)}
+                      onBlur={saveCaseTitle}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveCaseTitle();
+                        if (e.key === "Escape") setIsEditingTitle(false);
+                      }}
+                      className={`bg-transparent border ${borderMain} px-3 py-2 rounded-xl outline-none font-semibold text-base uppercase ${textMain} w-full focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600`}
+                      autoFocus
+                    />
+                  ) : (
+                    <h3 
+                      onClick={() => {
+                        setTempTitle(selectedCase.title || "");
+                        setIsEditingTitle(true);
+                      }}
+                      className={`font-semibold text-base uppercase ${labelHeaderStyle} cursor-pointer hover:underline decoration-dotted inline-block`}
+                      title="Haz clic para renombrar el caso"
+                    >
+                      {selectedCase.title || "Caso sin asunto"}
+                    </h3>
+                  )}
                 </div>
+
+                {/* Botón de cerrar minimalista (Solo X) */}
+                <button 
+                  onClick={() => setSelectedCase(null)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-xl border ${borderMain} ${hoverBg} transition-all duration-150 font-semibold text-xs shrink-0 active:scale-95`}
+                  title="Cerrar"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Contenido del Modal (Split Layout) */}
+              <div className={`flex-1 grid grid-cols-1 md:grid-cols-3 overflow-hidden ${modalBodyBg}`}>
                 
-                {/* Título de caso editable con clic directo */}
-                {isEditingTitle ? (
-                  <input
-                    type="text"
-                    value={tempTitle}
-                    onChange={(e) => setTempTitle(e.target.value)}
-                    onBlur={saveCaseTitle}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveCaseTitle();
-                      if (e.key === "Escape") setIsEditingTitle(false);
-                    }}
-                    className={`bg-transparent border ${borderMain} px-3 py-2 rounded-xl outline-none font-extrabold text-base uppercase ${textMain} w-full focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-600`}
-                    autoFocus
-                  />
-                ) : (
-                  <h3 
-                    onClick={() => {
-                      setTempTitle(selectedCase.title || "");
-                      setIsEditingTitle(true);
-                    }}
-                    className={`font-extrabold text-base uppercase ${labelHeaderStyle} cursor-pointer hover:underline decoration-dotted inline-block`}
-                    title="Haz clic para renombrar el caso"
-                  >
-                    {selectedCase.title || "Caso sin asunto"}
-                  </h3>
-                )}
-              </div>
-
-              {/* Botón de cerrar minimalista (Solo X) */}
-              <button 
-                onClick={() => setSelectedCase(null)}
-                className={`w-8 h-8 flex items-center justify-center rounded-xl border ${borderMain} ${hoverBg} transition-all duration-150 font-semibold text-xs shrink-0 active:scale-95`}
-                title="Cerrar"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Contenido del Modal (Ultra-minimalista sin líneas divisorias toscas y con gap amplio para respirar) */}
-            <div className={`flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-2 gap-12 ${modalBodyBg}`}>
-              
-              {/* Lado Inicial (Cliente) */}
-              <div className="space-y-4">
-                {selectedCase.inicial ? (
-                  <div className="space-y-4">
-                    {/* Flecha roja y metadatos alineados en una sola línea */}
-                    <div className="flex items-center gap-2 pb-2">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 13l-7 7-7-7" />
-                      </svg>
-                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate font-semibold uppercase tracking-wider">
-                        {cleanSenderName(selectedCase.inicial.sender)} | {cleanSenderEmail(selectedCase.inicial.sender)}
-                      </span>
-                    </div>
-
-                    {/* Historial de Mensajes (Solo pastillas con hora y asunto, sin cuerpo de correo) */}
-                    <div className="space-y-3">
-                      {selectedCase.inicial.messages?.map((msg, index) => (
-                        <div key={msg.messageId || index} className="flex items-center justify-between gap-3 text-xs">
-                          {/* Pastilla con hora y asunto del correo */}
-                          <div className={`px-4 py-2.5 rounded-xl ${messageItemBg} flex items-center gap-2.5 max-w-[85%] truncate shadow-2xs`}>
-                            <span className="text-[9px] font-bold font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
-                              {formatDateTime(msg.date)}
-                            </span>
-                            <span className={`truncate font-medium ${labelHeaderStyle}`} title={msg.subject}>
-                              {msg.subject}
-                            </span>
-                          </div>
-                          <a
-                            href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={`text-[10px] uppercase hover:font-bold ${gmailLinkStyle} shrink-0`}
+                {/* COLUMNA 1 y 2: Chat Cronológico (Estilo WhatsApp Minimalista) */}
+                <div className="md:col-span-2 flex flex-col h-[55vh] md:h-[60vh] overflow-hidden bg-zinc-50/20 dark:bg-zinc-950/10">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
+                    {chronologicalMessages.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
+                        <p className={`text-xs ${textSecondary} italic`}>No hay mensajes en esta conversación.</p>
+                      </div>
+                    ) : (
+                      chronologicalMessages.map(({ msg, type }) => {
+                        const isInicial = type === "inicial";
+                        return (
+                          <div 
+                            key={msg.messageId}
+                            className={`flex flex-col w-full ${isInicial ? "items-start" : "items-end"}`}
                           >
-                            Gmail ↗
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <p className={`text-xs ${textSecondary} italic`}>No hay información.</p>
-                )}
-              </div>
+                            <div 
+                              className={`max-w-[85%] p-3.5 shadow-2xs ${
+                                isInicial 
+                                  ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tl-sm border border-zinc-200/50 dark:border-zinc-800/40" 
+                                  : "bg-blue-500/10 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tr-sm border border-blue-500/15"
+                              }`}
+                            >
+                              {/* Remitente y Fecha */}
+                              <div className="flex justify-between items-baseline gap-4 mb-2 border-b border-zinc-100/60 dark:border-zinc-800/25 pb-1 select-none">
+                                <span className="font-bold text-[9px] tracking-wide text-zinc-400 dark:text-zinc-500 uppercase truncate max-w-[150px]">
+                                  {cleanSenderName(msg.sender)}
+                                </span>
+                                <span className="text-[8px] font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
+                                  {formatDateTime(msg.date)}
+                                </span>
+                              </div>
 
-              {/* Lado Levantamiento (Derivado) */}
-              <div className="space-y-4">
-                {selectedCase.levantamiento ? (
-                  <div className="space-y-4">
-                    {/* Flecha verde y metadatos alineados en una sola línea */}
-                    <div className="flex items-center gap-2 pb-2">
-                      <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 11l7-7 7 7" />
-                      </svg>
-                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate font-semibold uppercase tracking-wider">
-                        {cleanSenderName(selectedCase.levantamiento.recipient)} | {cleanSenderEmail(selectedCase.levantamiento.recipient)}
-                      </span>
-                    </div>
+                              {/* Asunto */}
+                              <p className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">
+                                Asunto: {msg.subject}
+                              </p>
 
-                    {/* Historial de Mensajes (Solo pastillas con hora y asunto, sin cuerpo de correo) */}
-                    <div className="space-y-3">
-                      {selectedCase.levantamiento.messages?.map((msg, index) => (
-                        <div key={msg.messageId || index} className="flex items-center justify-between gap-3 text-xs">
-                          {/* Pastilla con hora y asunto del correo */}
-                          <div className={`px-4 py-2.5 rounded-xl ${messageItemBg} flex items-center gap-2.5 max-w-[85%] truncate shadow-2xs`}>
-                            <span className="text-[9px] font-bold font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
-                              {formatDateTime(msg.date)}
-                            </span>
-                            <span className={`truncate font-medium ${labelHeaderStyle}`} title={msg.subject}>
-                              {msg.subject}
-                            </span>
+                              {/* Cuerpo */}
+                              <p className="text-xs leading-relaxed whitespace-pre-wrap break-words text-zinc-800 dark:text-zinc-200">
+                                {msg.body}
+                              </p>
+
+                              {/* Enlace de Gmail */}
+                              <div className="mt-2.5 pt-1 border-t border-zinc-100/60 dark:border-zinc-800/20 text-right">
+                                <a
+                                  href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className={`text-[9px] uppercase hover:font-bold ${gmailLinkStyle}`}
+                                >
+                                  Ver en Gmail ↗
+                                </a>
+                              </div>
+                            </div>
                           </div>
-                          <a
-                            href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={`text-[10px] uppercase hover:font-bold ${gmailLinkStyle} shrink-0`}
-                          >
-                            Gmail ↗
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="h-32 rounded-xl flex flex-col items-center justify-center p-6 text-center space-y-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-dashed border-zinc-200 dark:border-zinc-800">
-                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                    <p className={`text-[10px] ${textSecondary} max-w-xs`}>
-                      No se ha registrado derivación todavía.
-                    </p>
-                    
-                    {orphanCases.length > 0 && (
-                      <button
-                        onClick={() => {
-                          setSelectedCase(null);
-                          setIsLinkingOrphanId(orphanCases[0].id);
-                        }}
-                        className={`px-3 py-1 rounded-lg text-[9px] font-bold uppercase border ${linkButtonStyle}`}
-                      >
-                        Vincular
-                      </button>
+                        );
+                      })
                     )}
                   </div>
-                )}
+                </div>
+
+                {/* COLUMNA 3: Opciones y Post-Mortem */}
+                <div className="flex flex-col h-[55vh] md:h-[60vh] p-6 space-y-6 bg-white dark:bg-[#161618] border-l border-zinc-200/30 dark:border-zinc-800/40 overflow-y-auto">
+                  
+                  {/* Selector de Estado */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 block">
+                      Estado del caso
+                    </span>
+                    <div className="flex bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-lg text-xs select-none">
+                      <button
+                        onClick={() => toggleCaseStatus(selectedCase.id, "activo")}
+                        className={`flex-1 py-1 rounded-md text-xs font-semibold transition-all duration-150 ${
+                          selectedCase.status === "activo"
+                            ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                        }`}
+                      >
+                        Activo
+                      </button>
+                      <button
+                        onClick={() => toggleCaseStatus(selectedCase.id, "resuelto")}
+                        className={`flex-1 py-1 rounded-md text-xs font-semibold transition-all duration-150 ${
+                          selectedCase.status === "resuelto"
+                            ? "bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-50 shadow-xs"
+                            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                        }`}
+                      >
+                        Resuelto
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Marcar como leído si tiene pendientes */}
+                  {(selectedCase.inicial?.hasUnread || selectedCase.levantamiento?.hasUnread) && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 block">
+                        Acciones
+                      </span>
+                      <button
+                        onClick={() => markAsRead(selectedCase.id)}
+                        className={`w-full py-2 text-xs font-bold uppercase rounded-lg transition-colors ${secondaryButtonStyle}`}
+                      >
+                        Marcar como leído
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Alerta de Derivación Pendiente */}
+                  {!selectedCase.levantamiento && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 block">
+                        Derivación
+                      </span>
+                      <div className="p-4 rounded-xl bg-amber-500/[0.02] dark:bg-amber-500/[0.01] border border-dashed border-amber-500/20 text-center space-y-2.5">
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                          Pendiente de vincular derivación
+                        </p>
+                        {orphanCases.length > 0 && (
+                          <button
+                            onClick={() => {
+                              setSelectedCase(null);
+                              setIsLinkingOrphanId(orphanCases[0].id);
+                            }}
+                            className={`w-full py-1.5 rounded-lg text-[9px] font-bold uppercase border ${linkButtonStyle}`}
+                          >
+                            Vincular ahora
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sección de Post-Mortem */}
+                  <div className="space-y-3 pt-4 border-t border-zinc-150 dark:border-zinc-800/60">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 block">
+                      Post-Mortem / Precedente
+                    </span>
+
+                    {isEditingPostMortem ? (
+                      <div className="space-y-3">
+                        <textarea
+                          value={tempPostMortem}
+                          onChange={(e) => setTempPostMortem(e.target.value)}
+                          placeholder="Describe la solución, causa raíz o notas para futuros casos similares..."
+                          className={`w-full h-36 p-3 text-xs border ${borderMain} ${inputBg} ${textMain} rounded-xl outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650 resize-none transition-all`}
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => savePostMortem(selectedCase.id, tempPostMortem)}
+                            className={`flex-1 py-1.5 text-[9px] font-bold uppercase rounded-lg ${primaryButtonStyle}`}
+                          >
+                            Guardar Nota
+                          </button>
+                          {selectedCase.postMortem && (
+                            <button
+                              onClick={() => {
+                                setTempPostMortem(selectedCase.postMortem || "");
+                                setIsEditingPostMortem(false);
+                              }}
+                              className={`px-3 py-1.5 text-[9px] font-bold uppercase rounded-lg ${secondaryButtonStyle}`}
+                            >
+                              Cancelar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className={`p-4 rounded-xl border ${borderMain} bg-zinc-50/40 dark:bg-zinc-900/20 shadow-2xs`}>
+                          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-wrap break-words">
+                            {selectedCase.postMortem}
+                          </p>
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => setIsEditingPostMortem(true)}
+                            className="text-[9px] uppercase font-bold text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-50 transition-colors"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm("¿Estás seguro de que deseas eliminar esta nota de post-mortem?")) {
+                                deletePostMortem(selectedCase.id);
+                              }
+                            }}
+                            className="text-[9px] uppercase font-bold text-red-650 hover:text-red-800 transition-colors"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
               </div>
 
-            </div>
-
-            {/* Footer del Modal */}
-            <div className={`p-6 pt-2 flex flex-wrap gap-4 items-center justify-between ${modalFooterBg}`}>
-              <div>
-                {(selectedCase.inicial?.hasUnread || selectedCase.levantamiento?.hasUnread) && (
-                  <button
-                    onClick={() => markAsRead(selectedCase.id)}
-                    className={`px-4 py-2 font-bold text-xs uppercase rounded-lg transition-colors ${secondaryButtonStyle}`}
-                  >
-                    Marcar como leído
-                  </button>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                {selectedCase.status === "activo" ? (
-                  <button
-                    onClick={() => archiveCase(selectedCase.id)}
-                    className={`px-4 py-2 text-xs font-bold uppercase rounded-lg transition-colors ${dangerButtonStyle}`}
-                  >
-                    Archivar Caso
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => unarchiveCase(selectedCase.id)}
-                    className={`px-4 py-2 text-xs font-bold uppercase rounded-lg hover:opacity-85 transition-opacity ${primaryButtonStyle}`}
-                  >
-                    Reabrir Caso
-                  </button>
-                )}
-              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MODAL: VINCULACIÓN MANUAL */}
       {isLinkingOrphanId && (
