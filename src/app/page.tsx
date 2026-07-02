@@ -988,7 +988,7 @@ export default function Home() {
                       }`}
                     >
                       {/* Bloque Izquierdo (Input / Correo Inicial) */}
-                      <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0 ${cardLeftBg} transition-colors duration-150 group-first:rounded-tl-2xl group-last:rounded-bl-2xl`}>
+                      <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0 transition-colors duration-150 group-first:rounded-tl-2xl group-last:rounded-bl-2xl`}>
                         {/* Fecha y hora + iconos de estado en línea */}
                         <div className="flex items-center gap-2.5 shrink-0">
                           <span className={`text-[10px] font-mono ${textSecondary}`}>
