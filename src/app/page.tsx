@@ -79,6 +79,51 @@ export default function Home() {
   const [linkSearchTerm, setLinkSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"activo" | "resuelto">("activo");
 
+  // Estado para controlar qué mensajes están expandidos en el modal
+  const [expandedMessageIds, setExpandedMessageIds] = useState<Record<string, boolean>>({});
+
+  // Helper para alternar la expansión de un mensaje largo
+  const toggleMessageExpand = (messageId: string) => {
+    setExpandedMessageIds(prev => ({
+      ...prev,
+      [messageId]: !prev[messageId]
+    }));
+  };
+
+  // Helper para dar formato básico (negrita y saltos de línea) al texto del correo
+  const renderFormattedBody = (text: string) => {
+    if (!text) return null;
+    const lines = text.split("\n");
+    return lines.map((line, idx) => {
+      const parts = [];
+      const boldRegex = /\*([^*]+)\*/g;
+      let match;
+      let lastIndex = 0;
+      
+      while ((match = boldRegex.exec(line)) !== null) {
+        if (match.index > lastIndex) {
+          parts.push(line.substring(lastIndex, match.index));
+        }
+        parts.push(
+          <strong key={match.index} className="font-bold text-zinc-900 dark:text-zinc-50">
+            {match[1]}
+          </strong>
+        );
+        lastIndex = boldRegex.lastIndex;
+      }
+      
+      if (lastIndex < line.length) {
+        parts.push(line.substring(lastIndex));
+      }
+      
+      return (
+        <span key={idx} className="block min-h-[1.2em]">
+          {parts.length > 0 ? parts : line}
+        </span>
+      );
+    });
+  };
+
   // Load saved theme or system preference on mount
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -1235,12 +1280,17 @@ export default function Home() {
                         
                         <div className="flex items-center gap-2">
                           <a
-                            href={`https://mail.google.com/mail/u/0/#search/${oc.levantamiento?.threadId}`}
+                            href={`https://mail.google.com/mail/u/0/#all/${oc.levantamiento?.threadId}`}
                             target="_blank"
                             rel="noreferrer"
-                            className={`text-[9px] uppercase hover:font-semibold ${gmailLinkStyle}`}
+                            className={`inline-flex items-center gap-1 text-[9px] uppercase font-bold hover:font-semibold ${gmailLinkStyle}`}
                           >
-                            Gmail
+                            <span>Gmail</span>
+                            <svg className="w-2.5 h-2.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15 3 21 3 21 9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
                           </a>
                           
                           <button
@@ -1372,19 +1422,44 @@ export default function Home() {
                               </p>
 
                               {/* Cuerpo */}
-                              <p className="text-xs leading-relaxed whitespace-pre-wrap break-words text-zinc-800 dark:text-zinc-200">
-                                {msg.body}
-                              </p>
+                              <div className="text-xs leading-relaxed break-words text-zinc-800 dark:text-zinc-200 space-y-1">
+                                {(() => {
+                                  const needsTruncation = msg.body.length > 400;
+                                  const isExpanded = !!expandedMessageIds[msg.messageId];
+                                  const textToRender = needsTruncation && !isExpanded 
+                                    ? msg.body.substring(0, 380) + "..." 
+                                    : msg.body;
+
+                                  return (
+                                    <>
+                                      <div>{renderFormattedBody(textToRender)}</div>
+                                      {needsTruncation && (
+                                        <button
+                                          onClick={() => toggleMessageExpand(msg.messageId)}
+                                          className="mt-2 text-[10px] font-bold uppercase text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors duration-150 select-none block"
+                                        >
+                                          {isExpanded ? "Mostrar menos" : "Mostrar más"}
+                                        </button>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                              </div>
 
                               {/* Enlace de Gmail */}
                               <div className="mt-2.5 pt-1 border-t border-zinc-100/60 dark:border-zinc-800/20 text-right">
                                 <a
-                                  href={`https://mail.google.com/mail/u/0/#search/rfc822msgid:${encodeURIComponent(msg.messageId)}`}
+                                  href={`https://mail.google.com/mail/u/0/#search/id:${msg.messageId}`}
                                   target="_blank"
                                   rel="noreferrer"
-                                  className={`text-[9px] uppercase hover:font-bold ${gmailLinkStyle}`}
+                                  className={`inline-flex items-center gap-1 text-[9px] uppercase font-bold hover:font-bold ${gmailLinkStyle}`}
                                 >
-                                  Ver en Gmail ↗
+                                  <span>Ver en Gmail</span>
+                                  <svg className="w-2.5 h-2.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                    <polyline points="15 3 21 3 21 9" />
+                                    <line x1="10" y1="14" x2="21" y2="3" />
+                                  </svg>
                                 </a>
                               </div>
                             </div>
