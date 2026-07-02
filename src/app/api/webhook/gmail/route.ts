@@ -21,10 +21,27 @@ function cleanSubject(subject: string): string {
     .toLowerCase();
 }
 
+// Función para normalizar Message-IDs (eliminar < y >)
+function cleanMessageId(id: string): string {
+  if (!id) return "";
+  return id.replace(/[<>]/g, "").trim();
+}
+
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
-    const { threadId, messageId, sender, recipient, subject, date, body, type } = payload;
+    const { 
+      threadId, 
+      messageId, 
+      sender, 
+      recipient, 
+      subject, 
+      date, 
+      body, 
+      type,
+      inReplyTo,
+      references
+    } = payload;
 
     if (!threadId || !messageId) {
       return NextResponse.json(
@@ -145,22 +162,48 @@ export async function POST(request: Request) {
       );
       const activeCasesSnap = await getDocs(qActiveWithoutLevantamiento);
       let matchedCaseId: string | null = null;
-      let cleanedLevantamientoSubject = cleanSubject(subject);
 
-      for (const caseDoc of activeCasesSnap.docs) {
-        const caseData = caseDoc.data();
-        // Solo evaluar casos que no tengan levantamiento asociado
-        if (!caseData.levantamiento) {
-          const cleanedInicialSubject = cleanSubject(caseData.inicial?.subject || "");
+      // 1. Coincidencia por cabeceras técnicas de correo (In-Reply-To / References)
+      const cleanedInReplyTo = inReplyTo ? cleanMessageId(inReplyTo) : "";
+      const cleanedReferences = references ? cleanMessageId(references) : "";
 
-          // Coincidencia si un asunto contiene al otro (limpios de prefijos)
-          if (
-            cleanedInicialSubject && cleanedLevantamientoSubject &&
-            (cleanedLevantamientoSubject.includes(cleanedInicialSubject) ||
-              cleanedInicialSubject.includes(cleanedLevantamientoSubject))
-          ) {
-            matchedCaseId = caseDoc.id;
-            break; // Coincidencia encontrada
+      if (cleanedInReplyTo || cleanedReferences) {
+        for (const caseDoc of activeCasesSnap.docs) {
+          const caseData = caseDoc.data();
+          if (!caseData.levantamiento) {
+            const inicialMessages = caseData.inicial?.messages || [];
+            const matchesHeader = inicialMessages.some((msg: any) => {
+              const cleanedMsgId = cleanMessageId(msg.messageId);
+              if (!cleanedMsgId) return false;
+              return (
+                (cleanedInReplyTo && cleanedInReplyTo === cleanedMsgId) ||
+                (cleanedReferences && cleanedReferences.includes(cleanedMsgId))
+              );
+            });
+
+            if (matchesHeader) {
+              matchedCaseId = caseDoc.id;
+              break;
+            }
+          }
+        }
+      }
+
+      // 2. Coincidencia por Asunto (Fallback si las cabeceras no coinciden o no existen)
+      if (!matchedCaseId) {
+        const cleanedLevantamientoSubject = cleanSubject(subject);
+        for (const caseDoc of activeCasesSnap.docs) {
+          const caseData = caseDoc.data();
+          if (!caseData.levantamiento) {
+            const cleanedInicialSubject = cleanSubject(caseData.inicial?.subject || "");
+            if (
+              cleanedInicialSubject && cleanedLevantamientoSubject &&
+              (cleanedLevantamientoSubject.includes(cleanedInicialSubject) ||
+                cleanedInicialSubject.includes(cleanedLevantamientoSubject))
+            ) {
+              matchedCaseId = caseDoc.id;
+              break;
+            }
           }
         }
       }
