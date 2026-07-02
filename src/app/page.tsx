@@ -1449,7 +1449,7 @@ export default function Home() {
                               {/* Enlace de Gmail */}
                               <div className="mt-2.5 pt-1 border-t border-zinc-100/60 dark:border-zinc-800/20 text-right">
                                 <a
-                                  href={`https://mail.google.com/mail/u/0/#search/id:${msg.messageId}`}
+                                  href={`https://mail.google.com/mail/u/0/#all/${(isInicial ? selectedCase.inicial?.threadId : selectedCase.levantamiento?.threadId) || selectedCase.id}`}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={`inline-flex items-center gap-1 text-[9px] uppercase font-bold hover:font-bold ${gmailLinkStyle}`}
