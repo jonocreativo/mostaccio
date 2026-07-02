@@ -1029,7 +1029,7 @@ export default function Home() {
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
                 {notifications.some(n => !n.read) && (
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-650 dark:bg-red-500 rounded-full" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-600 dark:bg-red-500 rounded-full" />
                 )}
               </button>
 
@@ -1193,7 +1193,7 @@ export default function Home() {
             >
               <span>Huérfanos</span>
               {orphanCases.length > 0 && (
-                <span className="flex items-center justify-center bg-red-650 dark:bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-4">
+                <span className="flex items-center justify-center bg-red-600 dark:bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-4">
                   {orphanCases.length}
                 </span>
               )}
@@ -1523,7 +1523,7 @@ export default function Home() {
             onClick={() => setSelectedCase(null)}
           >
             <div 
-              className={`w-full max-w-4xl border border-zinc-200/20 dark:border-zinc-800/15 rounded-3xl overflow-hidden flex flex-col max-h-[90vh] ${modalContainerBg} shadow-2xl shadow-zinc-200/20 dark:shadow-black/60`}
+              className={`w-full max-w-5xl border border-zinc-200/20 dark:border-zinc-800/15 rounded-3xl overflow-hidden flex flex-col max-h-[90vh] ${modalContainerBg} shadow-2xl shadow-zinc-200/20 dark:shadow-black/60`}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header del Modal */}
@@ -1746,9 +1746,9 @@ export default function Home() {
                   )}
 
                   {/* Sección de Post-Mortem */}
-                  <div className="space-y-3 pt-4 border-t border-zinc-150 dark:border-zinc-800/60">
+                  <div className="space-y-3 pt-4">
                     <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400 dark:text-zinc-500 block">
-                      Post-Mortem / Precedente
+                      Post-Mortem
                     </span>
 
                     {isEditingPostMortem ? (
