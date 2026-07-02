@@ -203,7 +203,7 @@ export default function Home() {
     };
     setNotifications(prev => [newNotification, ...prev]);
 
-    // 2. Toast temporal (duración 4s)
+    // 2. Toast temporal (duración 6s)
     const newToast: ToastMessage = {
       id,
       message,
@@ -211,10 +211,10 @@ export default function Home() {
     };
     setToasts(prev => [...prev, newToast]);
 
-    // Autodestruir el toast después de 4 segundos (duración de la animación)
+    // Autodestruir el toast después de 6 segundos (duración de la animación)
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4000);
+    }, 6000);
   };
 
   // Escucha en tiempo real de los casos en Firestore
@@ -1029,7 +1029,7 @@ export default function Home() {
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
                 {notifications.some(n => !n.read) && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-650 dark:bg-red-500 rounded-full" />
                 )}
               </button>
 
@@ -1070,54 +1070,26 @@ export default function Home() {
                           }, 1500);
                         }
 
-                        // Icono basado en el tipo de notificación
-                        let icon = (
-                          <svg className="w-3.5 h-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                            <polyline points="22,6 12,13 2,6" />
-                          </svg>
-                        );
+                        // Punto de color basado en el tipo de notificación
+                        let dotColor = "bg-blue-500";
                         if (notif.type === "new_orphan") {
-                          icon = (
-                            <svg className="w-3.5 h-3.5 text-amber-500 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                              <line x1="12" y1="9" x2="12" y2="13" />
-                              <line x1="12" y1="17" x2="12.01" y2="17" />
-                            </svg>
-                          );
+                          dotColor = "bg-amber-500"; // Yellow/orange for new orphan
                         } else if (notif.type === "archived") {
-                          icon = (
-                            <svg className="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <polyline points="21 8 21 21 3 21 3 8" />
-                              <rect x="1" y="3" width="22" height="5" />
-                              <line x1="10" y1="12" x2="14" y2="12" />
-                            </svg>
-                          );
+                          dotColor = "bg-zinc-400"; // Gray for archived
                         } else if (notif.type === "reopened") {
-                          icon = (
-                            <svg className="w-3.5 h-3.5 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                              <polyline points="17 8 12 3 7 8" />
-                              <line x1="12" y1="3" x2="12" y2="15" />
-                            </svg>
-                          );
+                          dotColor = "bg-emerald-500"; // Green for reopened
                         } else if (notif.type === "linked") {
-                          icon = (
-                            <svg className="w-3.5 h-3.5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                            </svg>
-                          );
+                          dotColor = "bg-indigo-500"; // Indigo/purple for linked
                         }
 
                         return (
                           <div
                             key={notif.id}
-                            className={`flex gap-3 p-2.5 rounded-xl border border-transparent transition-opacity ${
+                            className={`flex gap-3.5 p-2.5 rounded-xl border border-transparent transition-opacity items-center ${
                               notif.read ? "opacity-70" : "bg-zinc-50/70 dark:bg-zinc-900/40 font-medium"
                             }`}
                           >
-                            <div className="shrink-0 mt-0.5">{icon}</div>
+                            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
                             <div className="flex-1 min-w-0 space-y-0.5">
                               <p className="text-[11px] leading-snug break-words text-zinc-850 dark:text-zinc-200">
                                 {notif.message}
@@ -1221,9 +1193,7 @@ export default function Home() {
             >
               <span>Huérfanos</span>
               {orphanCases.length > 0 && (
-                <span className="flex items-center justify-center bg-[#F99243] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] h-4 animate-pulse">
-                  {orphanCases.length}
-                </span>
+                <span className="w-1.5 h-1.5 bg-red-650 dark:bg-red-500 rounded-full shrink-0" />
               )}
             </button>
           </div>
