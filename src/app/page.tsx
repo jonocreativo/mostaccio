@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth, googleProvider, db } from "@/firebase";
-import { collection, onSnapshot, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, onSnapshot, updateDoc, deleteDoc, doc, deleteField } from "firebase/firestore";
 
 // Interfaces para tipado robusto de datos
 interface Message {
@@ -34,6 +34,8 @@ interface Case {
   inicial?: EmailGroup;
   levantamiento?: EmailGroup;
   postMortem?: string;
+  pinned?: boolean;
+  starred?: boolean;
 }
 
 export default function Home() {
@@ -72,6 +74,8 @@ export default function Home() {
   const [cases, setCases] = useState<Case[]>([]);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [isLinkingOrphanId, setIsLinkingOrphanId] = useState<string | null>(null);
+  const [activeLinkInitialCaseId, setActiveLinkInitialCaseId] = useState<string | null>(null);
+  const [activeMenuCaseId, setActiveMenuCaseId] = useState<string | null>(null);
   const [linkSearchTerm, setLinkSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"activo" | "resuelto">("activo");
 
@@ -168,6 +172,19 @@ export default function Home() {
       window.removeEventListener("click", handleOutsideClick);
     };
   }, [isProfileOpen]);
+
+  // Close active dropdown on click outside
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveMenuCaseId(null);
+    };
+    if (activeMenuCaseId) {
+      window.addEventListener("click", handleOutsideClick);
+    }
+    return () => {
+      window.removeEventListener("click", handleOutsideClick);
+    };
+  }, [activeMenuCaseId]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -356,6 +373,111 @@ export default function Home() {
     }
   };
 
+  // Toggle pin status
+  const togglePinCase = async (caseId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const targetCase = cases.find(c => c.id === caseId);
+    if (!targetCase) return;
+    try {
+      const caseRef = doc(db, "cases", caseId);
+      await updateDoc(caseRef, {
+        pinned: !targetCase.pinned,
+        updatedAt: new Date().toISOString()
+      });
+      setActiveMenuCaseId(null);
+    } catch (err) {
+      console.error("Error al fijar/desfijar caso:", err);
+    }
+  };
+
+  // Toggle star/flag status
+  const toggleStarCase = async (caseId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const targetCase = cases.find(c => c.id === caseId);
+    if (!targetCase) return;
+    try {
+      const caseRef = doc(db, "cases", caseId);
+      await updateDoc(caseRef, {
+        starred: !targetCase.starred,
+        updatedAt: new Date().toISOString()
+      });
+      setActiveMenuCaseId(null);
+    } catch (err) {
+      console.error("Error al destacar caso:", err);
+    }
+  };
+
+  // Delete case definitively
+  const deleteCase = async (caseId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!confirm("¿Estás seguro de que deseas eliminar este hilo definitivamente?")) return;
+    try {
+      const caseRef = doc(db, "cases", caseId);
+      await deleteDoc(caseRef);
+      setActiveMenuCaseId(null);
+    } catch (err) {
+      console.error("Error al eliminar el caso:", err);
+    }
+  };
+
+  // Unlink levantamiento from a case
+  const unlinkCase = async (caseId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const targetCase = cases.find(c => c.id === caseId);
+    if (!targetCase || !targetCase.levantamiento) return;
+    if (!confirm("¿Estás seguro de que deseas desvincular la derivación de este caso? Esto lo convertirá en un hilo huérfano.")) return;
+    try {
+      const { setDoc, doc } = await import("firebase/firestore");
+      
+      // 1. Create a new orphan case with the levantamiento data
+      const newOrphanId = `orphan_${targetCase.levantamiento.threadId}_${Date.now()}`;
+      await setDoc(doc(db, "cases", newOrphanId), {
+        title: targetCase.levantamiento.subject,
+        status: "activo",
+        createdAt: targetCase.levantamiento.messages?.[0]?.date || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        levantamiento: targetCase.levantamiento
+      });
+
+      // 2. Remove the levantamiento from the initial case
+      const caseRef = doc(db, "cases", caseId);
+      await updateDoc(caseRef, {
+        levantamiento: deleteField(),
+        updatedAt: new Date().toISOString()
+      });
+      setActiveMenuCaseId(null);
+    } catch (err) {
+      console.error("Error al desvincular caso:", err);
+    }
+  };
+
+  // Link manual from initial case side
+  const handleLinkOrphanToInitial = async (orphanCaseId: string) => {
+    if (!activeLinkInitialCaseId) return;
+    const orphanCase = cases.find(c => c.id === orphanCaseId);
+    if (!orphanCase || !orphanCase.levantamiento) return;
+
+    try {
+      // 1. Vincular el objeto levantamiento al caso inicial
+      const inicialRef = doc(db, "cases", activeLinkInitialCaseId);
+      await updateDoc(inicialRef, {
+        levantamiento: orphanCase.levantamiento,
+        updatedAt: new Date().toISOString()
+      });
+
+      // 2. Eliminar el caso huérfano
+      const orphanRef = doc(db, "cases", orphanCaseId);
+      await deleteDoc(orphanRef);
+
+      // Limpiar estados
+      setActiveLinkInitialCaseId(null);
+      setLinkSearchTerm("");
+    } catch (err) {
+      console.error("Error al vincular derivación al caso inicial:", err);
+      alert("No se pudo realizar la vinculación manual.");
+    }
+  };
+
   // Generador de datos de prueba local en Firestore
   const generateMockThreads = async () => {
     try {
@@ -488,9 +610,20 @@ export default function Home() {
     return match ? match[1] : senderStr;
   };
 
+  // Helper to sort cases: pinned first, then chronological (newest first)
+  const sortCases = (list: Case[]) => {
+    return [...list].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      const dateA = a.inicial?.messages?.[0]?.date || a.createdAt;
+      const dateB = b.inicial?.messages?.[0]?.date || b.createdAt;
+      return new Date(dateB).getTime() - new Date(dateA).getTime();
+    });
+  };
+
   // Clasificación de hilos
-  const activeCases = cases.filter(c => c.status === "activo" && c.inicial);
-  const archivedCases = cases.filter(c => c.status === "resuelto" && c.inicial);
+  const activeCases = sortCases(cases.filter(c => c.status === "activo" && c.inicial));
+  const archivedCases = sortCases(cases.filter(c => c.status === "resuelto" && c.inicial));
   const orphanCases = cases.filter(c => c.status === "activo" && !c.inicial && c.levantamiento);
 
   const displayedCases = filterStatus === "activo" ? activeCases : archivedCases;
@@ -506,8 +639,12 @@ export default function Home() {
   
   // Component specific colors (Modern SaaS/macOS dynamic values)
   const cardHeaderBg = theme === "light" ? "bg-zinc-50/30" : "bg-zinc-900/30";
-  const cardLeftBg = theme === "light" ? "bg-white" : "bg-[#161618]";
-  const cardRightBg = theme === "light" ? "bg-zinc-50/20" : "bg-zinc-900/20";
+  const cardLeftBg = theme === "light" 
+    ? "bg-[#F99243]/[0.03] group-hover:bg-[#F99243]/[0.06]" 
+    : "bg-[#F99243]/[0.015] group-hover:bg-[#F99243]/[0.03]";
+  const cardRightBg = theme === "light" 
+    ? "bg-[#1A1615]/[0.02] group-hover:bg-[#1A1615]/[0.04]" 
+    : "bg-[#1A1615]/75 group-hover:bg-[#1A1615]/90";
   const innerCardBg = theme === "light" ? "bg-white border border-zinc-200/40" : "bg-[#161618] border border-zinc-800/45";
   const modalHeaderBg = theme === "light" ? "bg-white" : "bg-[#161618]";
   const modalFooterBg = theme === "light" ? "bg-white" : "bg-[#161618]";
@@ -849,120 +986,197 @@ export default function Home() {
                       className={`group relative cursor-pointer border-b ${borderMain} last:border-b-0 bg-transparent hover:bg-zinc-50/70 dark:hover:bg-zinc-800/20 transition-colors duration-150 grid grid-cols-2 items-stretch h-12 overflow-hidden`}
                     >
                       {/* Bloque Izquierdo (Input / Correo Inicial) */}
-                      <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0`}>
+                      <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0 ${cardLeftBg} transition-colors duration-150`}>
                         {/* Fecha y hora a la izquierda */}
                         <div className="flex items-center gap-2 shrink-0">
-                          {hasUnread && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0"></span>
-                          )}
                           <span className={`text-[10px] font-mono ${textSecondary}`}>
                             {formatDateTime(c.inicial?.messages?.[0]?.date || c.createdAt)}
                           </span>
                         </div>
 
-                        {/* Asunto a la derecha */}
-                        <span 
-                          className={`text-xs truncate pl-4 text-right ${
-                            hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
-                          }`}
-                          title={c.inicial?.subject || c.title}
-                        >
-                          {c.inicial?.subject || c.title || "Sin asunto"}
-                        </span>
+                        {/* Asunto a la derecha con iconos de estado */}
+                        <div className="flex items-center gap-1.5 min-w-0 pl-4 justify-end">
+                          {c.pinned && (
+                            <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <title>Fijado</title>
+                              <line x1="12" y1="17" x2="12" y2="22" />
+                              <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.71A2 2 0 0 1 15 9.05V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.05a2 2 0 0 1-.78 1.25l-2.78 3.71A2 2 0 0 0 5 15.24V17z" />
+                            </svg>
+                          )}
+                          {c.starred && (
+                            <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                              <title>Destacado</title>
+                              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                            </svg>
+                          )}
+                          <span 
+                            className={`text-xs truncate text-right ${
+                              hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
+                            }`}
+                            title={c.inicial?.subject || c.title}
+                          >
+                            {c.inicial?.subject || c.title || "Sin asunto"}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Bloque Derecho (Output / Correo Derivado) */}
-                      <div className={`flex items-center justify-between px-5 h-full min-w-0 ${
-                        !c.levantamiento ? 'bg-amber-500/[0.015] dark:bg-amber-500/[0.005]' : ''
+                      <div className={`flex items-center justify-between px-5 h-full min-w-0 transition-colors duration-150 relative ${
+                        !c.levantamiento 
+                          ? 'bg-amber-500/[0.015] dark:bg-amber-500/[0.005] group-hover:bg-amber-500/[0.04] dark:group-hover:bg-amber-500/[0.02]' 
+                          : cardRightBg
                       }`}>
                         {c.levantamiento ? (
-                          <>
-                            {/* Asunto a la izquierda */}
-                            <span 
-                              className={`text-xs truncate pr-4 text-left ${
-                                hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
-                              }`}
-                              title={c.levantamiento.subject}
-                            >
-                              {c.levantamiento.subject}
-                            </span>
-
-                            {/* Fecha y hora a la derecha / Botones rápidos en hover */}
-                            <div className="flex items-center gap-2 shrink-0 pl-4">
-                              <span className={`text-[10px] font-mono ${textSecondary} group-hover:hidden`}>
-                                {formatDateTime(c.levantamiento.messages?.[0]?.date || c.updatedAt)}
-                              </span>
-                              <div className="hidden group-hover:flex items-center gap-1">
-                                {c.status === "activo" ? (
-                                  <button
-                                    onClick={(e) => archiveCase(c.id, e)}
-                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
-                                    title="Archivar Caso"
-                                  >
-                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <polyline points="21 8 21 21 3 21 3 8" />
-                                      <rect x="1" y="3" width="22" height="5" />
-                                      <line x1="10" y1="12" x2="14" y2="12" />
-                                    </svg>
-                                  </button>
-                                ) : (
-                                  <button
-                                    onClick={(e) => unarchiveCase(c.id, e)}
-                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
-                                    title="Reabrir Caso"
-                                  >
-                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                      <polyline points="17 8 12 3 7 8" />
-                                      <line x1="12" y1="3" x2="12" y2="15" />
-                                    </svg>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </>
+                          <span 
+                            className={`text-xs truncate pr-4 text-left ${
+                              hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
+                            }`}
+                            title={c.levantamiento.subject}
+                          >
+                            {c.levantamiento.subject}
+                          </span>
                         ) : (
-                          <>
-                            {/* Mensaje de Pendiente Derivación */}
-                            <span className="text-xs italic text-zinc-400 dark:text-zinc-500 font-medium truncate">
-                              Pendiente Derivación
-                            </span>
+                          <span className="text-xs italic text-zinc-400 dark:text-zinc-500 font-medium truncate">
+                            Pendiente Derivación
+                          </span>
+                        )}
 
-                            {/* Acciones en hover para casos pendientes */}
-                            <div className="flex items-center gap-2 shrink-0 pl-4">
-                              <span className={`text-[10px] font-mono ${textSecondary} group-hover:hidden`}>
-                                --
-                              </span>
-                              <div className="hidden group-hover:flex items-center gap-1">
-                                {c.status === "activo" ? (
+                        {/* Controles de la derecha (Fijos y Hover) */}
+                        <div className="flex items-center gap-3 shrink-0 pl-4">
+                          {/* Fecha / -- (Oculto en hover) */}
+                          <span className={`text-[10px] font-mono ${textSecondary} group-hover:hidden`}>
+                            {c.levantamiento 
+                              ? formatDateTime(c.levantamiento.messages?.[0]?.date || c.updatedAt)
+                              : "--"
+                            }
+                          </span>
+
+                          {/* Acciones Rápidas (Visibles en hover) */}
+                          <div className="hidden group-hover:flex items-center gap-1.5">
+                            {c.status === "activo" ? (
+                              <button
+                                onClick={(e) => archiveCase(c.id, e)}
+                                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
+                                title="Archivar Caso"
+                              >
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="21 8 21 21 3 21 3 8" />
+                                  <rect x="1" y="3" width="22" height="5" />
+                                  <line x1="10" y1="12" x2="14" y2="12" />
+                                </svg>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => unarchiveCase(c.id, e)}
+                                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
+                                title="Reabrir Caso"
+                              >
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                  <polyline points="17 8 12 3 7 8" />
+                                  <line x1="12" y1="3" x2="12" y2="15" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Botón de tres puntitos (Fijo) */}
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveMenuCaseId(activeMenuCaseId === c.id ? null : c.id);
+                              }}
+                              className={`p-1.5 rounded-lg border ${borderMain} bg-white dark:bg-[#161618] hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all active:scale-95`}
+                              title="Opciones"
+                            >
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="1.5" />
+                                <circle cx="12" cy="5" r="1.5" />
+                                <circle cx="12" cy="19" r="1.5" />
+                              </svg>
+                            </button>
+
+                            {/* Dropdown Menu (Animación suave, blanco/negro) */}
+                            {activeMenuCaseId === c.id && (
+                              <div 
+                                className="absolute right-0 top-8 w-52 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#161618] rounded-xl p-1 z-50 shadow-lg animate-dropdown-in origin-top-right"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {/* Opción 1: Fijar arriba */}
+                                <button
+                                  onClick={(e) => togglePinCase(c.id, e)}
+                                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs rounded-lg transition-colors ${hoverBg} ${textMain}`}
+                                >
+                                  <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="12" y1="17" x2="12" y2="22" />
+                                    <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.71A2 2 0 0 1 15 9.05V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.05a2 2 0 0 1-.78 1.25l-2.78 3.71A2 2 0 0 0 5 15.24V17z" />
+                                  </svg>
+                                  <span>{c.pinned ? "Desfijar de arriba" : "Fijar arriba"}</span>
+                                </button>
+
+                                {/* Opción 2: Destacar (Banderita / Penguin tail) */}
+                                <button
+                                  onClick={(e) => toggleStarCase(c.id, e)}
+                                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs rounded-lg transition-colors ${hoverBg} ${textMain}`}
+                                >
+                                  <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill={c.starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                                  </svg>
+                                  <span>{c.starred ? "Quitar destacado" : "Destacar"}</span>
+                                </button>
+
+                                {/* Opción 3: Match / Vinculación */}
+                                {c.levantamiento ? (
                                   <button
-                                    onClick={(e) => archiveCase(c.id, e)}
-                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
-                                    title="Archivar Caso"
+                                    onClick={(e) => unlinkCase(c.id, e)}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs rounded-lg transition-colors ${hoverBg} ${textMain}`}
                                   >
-                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <polyline points="21 8 21 21 3 21 3 8" />
-                                      <rect x="1" y="3" width="22" height="5" />
-                                      <line x1="10" y1="12" x2="14" y2="12" />
+                                    <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M18.84 12.2a4.5 4.5 0 0 0-6.36-6.36l-1.42 1.42a4.5 4.5 0 0 0 6.36 6.36l1.42-1.42Z" />
+                                      <path d="M12.8 17.8a4.5 4.5 0 0 1-6.36-6.36l1.42-1.42a4.5 4.5 0 0 1 6.36 6.36l-1.42 1.42Z" />
+                                      <line x1="16" y1="8" x2="8" y2="16" />
                                     </svg>
+                                    <span>Desvincular derivación</span>
                                   </button>
                                 ) : (
                                   <button
-                                    onClick={(e) => unarchiveCase(c.id, e)}
-                                    className="p-1 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
-                                    title="Reabrir Caso"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedCase(null);
+                                      setIsLinkingOrphanId(null);
+                                      setActiveLinkInitialCaseId(c.id);
+                                      setActiveMenuCaseId(null);
+                                    }}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs rounded-lg transition-colors ${hoverBg} ${textMain}`}
                                   >
-                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                      <polyline points="17 8 12 3 7 8" />
-                                      <line x1="12" y1="3" x2="12" y2="15" />
+                                    <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                                     </svg>
+                                    <span>Vincular derivación</span>
                                   </button>
                                 )}
+
+                                <div className={`my-1 border-t ${borderMain}`} />
+
+                                {/* Opción 4: Eliminar */}
+                                <button
+                                  onClick={(e) => deleteCase(c.id, e)}
+                                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs rounded-lg transition-colors ${hoverBg} hover:bg-zinc-100 dark:hover:bg-zinc-800 ${textMain}`}
+                                >
+                                  <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                    <line x1="10" y1="11" x2="10" y2="17" />
+                                    <line x1="14" y1="11" x2="14" y2="17" />
+                                  </svg>
+                                  <span>Eliminar hilo</span>
+                                </button>
                               </div>
-                            </div>
-                          </>
-                        )}
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -1128,8 +1342,10 @@ export default function Home() {
                             <div 
                               className={`max-w-[85%] p-3.5 shadow-2xs ${
                                 isInicial 
-                                  ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tl-sm border border-zinc-200/50 dark:border-zinc-800/40" 
-                                  : "bg-blue-500/10 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tr-sm border border-blue-500/15"
+                                  ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-2xl rounded-tl-sm border border-zinc-200/50 dark:border-zinc-800/40 border-l-2 border-l-[#F99243]/70" 
+                                  : (theme === "light" 
+                                      ? "bg-[#1A1615]/[0.04] text-zinc-900 rounded-2xl rounded-tr-sm border border-[#1A1615]/10" 
+                                      : "bg-[#1A1615] text-zinc-100 rounded-2xl rounded-tr-sm border border-zinc-800/60")
                               }`}
                             >
                               {/* Remitente y Fecha */}
@@ -1405,6 +1621,106 @@ export default function Home() {
               <button
                 onClick={() => {
                   setIsLinkingOrphanId(null);
+                  setLinkSearchTerm("");
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors ${secondaryButtonStyle}`}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: VINCULACIÓN MANUAL DESDE EL CASO INICIAL */}
+      {activeLinkInitialCaseId && (
+        <div 
+          className={`fixed inset-0 flex items-center justify-center p-4 z-50 animate-fade-in ${modalOverlayBg}`}
+          onClick={() => {
+            setActiveLinkInitialCaseId(null);
+            setLinkSearchTerm("");
+          }}
+        >
+          <div 
+            className={`w-full max-w-md border border-zinc-200/20 dark:border-zinc-800/15 rounded-3xl overflow-hidden flex flex-col ${modalContainerBg} shadow-2xl shadow-zinc-200/20 dark:shadow-black/60`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={`p-5 pb-2 ${modalHeaderBg}`}>
+              <h3 className={`font-extrabold text-sm uppercase tracking-wider ${labelHeaderStyle}`}>
+                Vincular correo derivado
+              </h3>
+              <p className={`text-[10px] ${textSecondary} mt-1`}>
+                Selecciona la derivación huérfana con la cual deseas emparejar este caso.
+              </p>
+            </div>
+
+            <div className="p-5 space-y-4 flex-1 overflow-y-auto max-h-96">
+              {/* Buscador */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-wider block text-zinc-500 dark:text-zinc-400">
+                  Buscar derivación huérfana
+                </label>
+                <input 
+                  type="text" 
+                  value={linkSearchTerm}
+                  onChange={(e) => setLinkSearchTerm(e.target.value)}
+                  placeholder="Asunto, remitente o ID del caso..."
+                  className={`w-full px-3.5 py-2 border ${borderMain} ${inputBg} ${textMain} text-xs rounded-xl outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650 transition-all`}
+                />
+              </div>
+
+              {/* Lista de huérfanos */}
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase font-bold tracking-wider block text-zinc-500 dark:text-zinc-400">
+                  Derivaciones Huérfanas Disponibles
+                </span>
+                
+                {(() => {
+                  const availableOrphans = orphanCases.filter(
+                    oc => oc.title.toLowerCase().includes(linkSearchTerm.toLowerCase()) ||
+                    oc.levantamiento?.sender.toLowerCase().includes(linkSearchTerm.toLowerCase()) ||
+                    oc.id.toLowerCase().includes(linkSearchTerm.toLowerCase())
+                  );
+
+                  if (availableOrphans.length === 0) {
+                    return (
+                      <p className={`text-[10px] ${textSecondary} italic py-4 text-center`}>
+                        No se encontraron derivaciones huérfanas activas.
+                      </p>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-2">
+                      {availableOrphans.map((oc) => (
+                        <div 
+                          key={oc.id}
+                          onClick={() => handleLinkOrphanToInitial(oc.id)}
+                          className={`p-3.5 rounded-xl cursor-pointer ${hoverBg} transition-all duration-150 flex items-center justify-between ${innerCardBg} shadow-2xs hover:shadow-xs`}
+                        >
+                          <div className="min-w-0 flex-1 pr-3">
+                            <p className={`font-bold text-[11px] truncate uppercase ${labelHeaderStyle}`}>
+                              {oc.title}
+                            </p>
+                            <p className={`text-[9px] ${textSecondary} truncate`}>
+                              De: {oc.levantamiento?.sender?.split("<")[0]}
+                            </p>
+                          </div>
+                          <span className={`text-[9px] uppercase shrink-0 font-bold hover:underline ${labelHeaderStyle}`}>
+                            Vincular →
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            <div className={`p-4 border-t ${borderMain} text-right ${modalFooterBg}`}>
+              <button
+                onClick={() => {
+                  setActiveLinkInitialCaseId(null);
                   setLinkSearchTerm("");
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors ${secondaryButtonStyle}`}
