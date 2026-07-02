@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { signInWithPopup, signOut, onAuthStateChanged, User } from "firebase/auth";
 import { auth, googleProvider, db } from "@/firebase";
-import { collection, onSnapshot, updateDoc, deleteDoc, doc, deleteField } from "firebase/firestore";
+import { collection, onSnapshot, updateDoc, deleteDoc, doc, deleteField, query, where } from "firebase/firestore";
 
 // Interfaces para tipado robusto de datos
 interface Message {
@@ -219,9 +219,10 @@ export default function Home() {
 
   // Escucha en tiempo real de los casos en Firestore
   useEffect(() => {
-    if (!user) return;
+    if (!user || !user.email) return;
     const casesRef = collection(db, "cases");
-    const unsubscribe = onSnapshot(casesRef, (snapshot) => {
+    const q = query(casesRef, where("userEmail", "==", user.email.toLowerCase().trim()));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: Case[] = [];
       snapshot.forEach((doc) => {
         list.push({ id: doc.id, ...doc.data() } as Case);

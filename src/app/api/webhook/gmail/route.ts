@@ -49,7 +49,8 @@ export async function POST(request: Request) {
       type,
       inReplyTo,
       references,
-      rfcMessageId
+      rfcMessageId,
+      userEmail
     } = payload;
 
     if (!threadId || !messageId) {
@@ -59,9 +60,19 @@ export async function POST(request: Request) {
       );
     }
 
+    // Limpiar y normalizar el correo del propietario
+    const cleanEmail = (raw: string) => {
+      if (!raw) return "";
+      const match = raw.match(/<([^>]+)>/);
+      return match ? match[1].toLowerCase().trim() : raw.toLowerCase().trim();
+    };
+
+    let ownerEmail = userEmail ? userEmail.toLowerCase().trim() : "";
+    if (!ownerEmail) {
+      ownerEmail = type === "levantamiento" ? cleanEmail(sender) : cleanEmail(recipient);
+    }
+
     // Determinar el tipo de correo
-    // Si viene explícitamente en el payload, usamos ese.
-    // Si no, podemos intentar inferirlo por etiquetas o por default es "inicial".
     const mailType: "inicial" | "levantamiento" = type === "levantamiento" ? "levantamiento" : "inicial";
 
     const messageData = {
@@ -84,6 +95,7 @@ export async function POST(request: Request) {
         // Creamos un caso nuevo
         await setDoc(caseRef, {
           id: threadId,
+          userEmail: ownerEmail, // Aislamiento de datos
           title: subject || "Sin Asunto",
           status: "activo",
           createdAt: date || new Date().toISOString(),
@@ -164,11 +176,11 @@ export async function POST(request: Request) {
         });
       }
 
-      // Si no existe un caso con este threadId de levantamiento, intentamos buscar una coincidencia inteligente
-      // Buscamos casos activos que NO tengan levantamiento asociado
+      // Buscamos casos activos del mismo usuario que NO tengan levantamiento asociado
       const qActiveWithoutLevantamiento = query(
         casesRef,
-        where("status", "==", "activo")
+        where("status", "==", "activo"),
+        where("userEmail", "==", ownerEmail)
       );
       const activeCasesSnap = await getDocs(qActiveWithoutLevantamiento);
       let matchedCaseId: string | null = null;
@@ -260,6 +272,7 @@ export async function POST(request: Request) {
         const orphanCaseRef = doc(db, "cases", threadId);
         await setDoc(orphanCaseRef, {
           id: threadId,
+          userEmail: ownerEmail, // Aislamiento de datos
           title: subject || "Levantamiento Legal (Sin Vincular)",
           status: "activo",
           createdAt: date || new Date().toISOString(),
