@@ -989,37 +989,39 @@ export default function Home() {
                     >
                       {/* Bloque Izquierdo (Input / Correo Inicial) */}
                       <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0 ${cardLeftBg} transition-colors duration-150 group-first:rounded-tl-2xl group-last:rounded-bl-2xl`}>
-                        {/* Fecha y hora a la izquierda */}
-                        <div className="flex items-center gap-2 shrink-0">
+                        {/* Fecha y hora + iconos de estado en línea */}
+                        <div className="flex items-center gap-2.5 shrink-0">
                           <span className={`text-[10px] font-mono ${textSecondary}`}>
                             {formatDateTime(c.inicial?.messages?.[0]?.date || c.createdAt)}
                           </span>
+                          
+                          {/* Contenedor de iconos activos (fijado, destacado, etc.) */}
+                          <div className="flex items-center gap-1.5">
+                            {c.pinned && (
+                              <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <title>Fijado</title>
+                                <line x1="12" y1="17" x2="12" y2="22" />
+                                <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.71A2 2 0 0 1 15 9.05V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.05a2 2 0 0 1-.78 1.25l-2.78 3.71A2 2 0 0 0 5 15.24V17z" />
+                              </svg>
+                            )}
+                            {c.starred && (
+                              <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                                <title>Destacado</title>
+                                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                              </svg>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Asunto a la derecha con iconos de estado */}
-                        <div className="flex items-center gap-1.5 min-w-0 pl-4 justify-end">
-                          {c.pinned && (
-                            <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <title>Fijado</title>
-                              <line x1="12" y1="17" x2="12" y2="22" />
-                              <path d="M5 17h14v-1.76a2 2 0 0 0-.44-1.24l-2.78-3.71A2 2 0 0 1 15 9.05V5a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4.05a2 2 0 0 1-.78 1.25l-2.78 3.71A2 2 0 0 0 5 15.24V17z" />
-                            </svg>
-                          )}
-                          {c.starred && (
-                            <svg className="w-3 h-3 text-zinc-400 dark:text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                              <title>Destacado</title>
-                              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                            </svg>
-                          )}
-                          <span 
-                            className={`text-xs truncate text-right ${
-                              hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
-                            }`}
-                            title={c.inicial?.subject || c.title}
-                          >
-                            {c.inicial?.subject || c.title || "Sin asunto"}
-                          </span>
-                        </div>
+                        {/* Asunto a la derecha */}
+                        <span 
+                          className={`text-xs truncate pl-4 text-right ${
+                            hasUnread ? "font-semibold text-zinc-900 dark:text-zinc-50" : `font-medium ${labelHeaderStyle}`
+                          }`}
+                          title={c.inicial?.subject || c.title}
+                        >
+                          {c.inicial?.subject || c.title || "Sin asunto"}
+                        </span>
                       </div>
 
                       {/* Bloque Derecho (Output / Correo Derivado) */}
