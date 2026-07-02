@@ -976,17 +976,19 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className={`flex flex-col border ${borderMain} bg-white dark:bg-[#161618] rounded-2xl overflow-hidden shadow-xs`}>
+              <div className={`flex flex-col border ${borderMain} bg-white dark:bg-[#161618] rounded-2xl shadow-xs`}>
                 {displayedCases.map((c) => {
                   const hasUnread = c.inicial?.hasUnread || c.levantamiento?.hasUnread;
                   return (
                     <div
                       key={c.id}
                       onClick={() => setSelectedCase(c)}
-                      className={`group relative cursor-pointer border-b ${borderMain} last:border-b-0 bg-transparent hover:bg-zinc-50/70 dark:hover:bg-zinc-800/20 transition-colors duration-150 grid grid-cols-2 items-stretch h-12 overflow-hidden`}
+                      className={`group relative cursor-pointer border-b ${borderMain} last:border-b-0 bg-transparent hover:bg-zinc-50/70 dark:hover:bg-zinc-800/20 transition-colors duration-150 grid grid-cols-2 items-stretch h-12 first:rounded-t-2xl last:rounded-b-2xl ${
+                        activeMenuCaseId === c.id ? "z-30" : "z-10"
+                      }`}
                     >
                       {/* Bloque Izquierdo (Input / Correo Inicial) */}
-                      <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0 ${cardLeftBg} transition-colors duration-150`}>
+                      <div className={`flex items-center justify-between px-5 h-full border-r ${borderMain} min-w-0 ${cardLeftBg} transition-colors duration-150 group-first:rounded-tl-2xl group-last:rounded-bl-2xl`}>
                         {/* Fecha y hora a la izquierda */}
                         <div className="flex items-center gap-2 shrink-0">
                           <span className={`text-[10px] font-mono ${textSecondary}`}>
@@ -1021,7 +1023,7 @@ export default function Home() {
                       </div>
 
                       {/* Bloque Derecho (Output / Correo Derivado) */}
-                      <div className={`flex items-center justify-between px-5 h-full min-w-0 transition-colors duration-150 relative ${
+                      <div className={`flex items-center justify-between px-5 h-full min-w-0 transition-colors duration-150 relative group-first:rounded-tr-2xl group-last:rounded-br-2xl ${
                         !c.levantamiento 
                           ? 'bg-amber-500/[0.015] dark:bg-amber-500/[0.005] group-hover:bg-amber-500/[0.04] dark:group-hover:bg-amber-500/[0.02]' 
                           : cardRightBg
@@ -1043,42 +1045,13 @@ export default function Home() {
 
                         {/* Controles de la derecha (Fijos y Hover) */}
                         <div className="flex items-center gap-3 shrink-0 pl-4">
-                          {/* Fecha / -- (Oculto en hover) */}
-                          <span className={`text-[10px] font-mono ${textSecondary} group-hover:hidden`}>
+                          {/* Fecha / -- (Permanente) */}
+                          <span className={`text-[10px] font-mono ${textSecondary}`}>
                             {c.levantamiento 
                               ? formatDateTime(c.levantamiento.messages?.[0]?.date || c.updatedAt)
                               : "--"
                             }
                           </span>
-
-                          {/* Acciones Rápidas (Visibles en hover) */}
-                          <div className="hidden group-hover:flex items-center gap-1.5">
-                            {c.status === "activo" ? (
-                              <button
-                                onClick={(e) => archiveCase(c.id, e)}
-                                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
-                                title="Archivar Caso"
-                              >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <polyline points="21 8 21 21 3 21 3 8" />
-                                  <rect x="1" y="3" width="22" height="5" />
-                                  <line x1="10" y1="12" x2="14" y2="12" />
-                                </svg>
-                              </button>
-                            ) : (
-                              <button
-                                onClick={(e) => unarchiveCase(c.id, e)}
-                                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors duration-150 active:scale-95"
-                                title="Reabrir Caso"
-                              >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                  <polyline points="17 8 12 3 7 8" />
-                                  <line x1="12" y1="3" x2="12" y2="15" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
 
                           {/* Botón de tres puntitos (Fijo) */}
                           <div className="relative">
@@ -1100,7 +1073,7 @@ export default function Home() {
                             {/* Dropdown Menu (Animación suave, blanco/negro) */}
                             {activeMenuCaseId === c.id && (
                               <div 
-                                className="absolute right-0 top-8 w-52 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#161618] rounded-xl p-1 z-50 shadow-lg animate-dropdown-in origin-top-right"
+                                className="absolute right-0 top-8 w-52 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#161618] rounded-xl p-1.5 z-50 shadow-lg animate-dropdown-in origin-top-right"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {/* Opción 1: Fijar arriba */}
@@ -1126,7 +1099,40 @@ export default function Home() {
                                   <span>{c.starred ? "Quitar destacado" : "Destacar"}</span>
                                 </button>
 
-                                {/* Opción 3: Match / Vinculación */}
+                                {/* Opción 3: Archivar / Reabrir */}
+                                <button
+                                  onClick={(e) => {
+                                    if (c.status === "activo") {
+                                      archiveCase(c.id, e);
+                                    } else {
+                                      unarchiveCase(c.id, e);
+                                    }
+                                    setActiveMenuCaseId(null);
+                                  }}
+                                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs rounded-lg transition-colors ${hoverBg} ${textMain}`}
+                                >
+                                  {c.status === "activo" ? (
+                                    <>
+                                      <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <polyline points="21 8 21 21 3 21 3 8" />
+                                        <rect x="1" y="3" width="22" height="5" />
+                                        <line x1="10" y1="12" x2="14" y2="12" />
+                                      </svg>
+                                      <span>Archivar hilo</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-3.5 h-3.5 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="17 8 12 3 7 8" />
+                                        <line x1="12" y1="3" x2="12" y2="15" />
+                                      </svg>
+                                      <span>Reabrir hilo</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                {/* Opción 4: Match / Vinculación */}
                                 {c.levantamiento ? (
                                   <button
                                     onClick={(e) => unlinkCase(c.id, e)}
@@ -1160,7 +1166,7 @@ export default function Home() {
 
                                 <div className={`my-1 border-t ${borderMain}`} />
 
-                                {/* Opción 4: Eliminar */}
+                                {/* Opción 5: Eliminar */}
                                 <button
                                   onClick={(e) => deleteCase(c.id, e)}
                                   className={`w-full flex items-center gap-2.5 px-3 py-2 text-left text-xs rounded-lg transition-colors ${hoverBg} hover:bg-zinc-100 dark:hover:bg-zinc-800 ${textMain}`}
